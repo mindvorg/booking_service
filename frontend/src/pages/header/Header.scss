@@ -1,0 +1,80 @@
+.header {
+	background-color: white;
+	width: 100%;
+}
+
+.header-up {
+	border-bottom: 1px solid rgb(228, 228, 228);
+}
+
+.header-up-container {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 0;
+}
+
+.location,
+.auth {
+	display: flex;
+	align-items: center;
+}
+
+.location {
+	font-size: 15px;
+}
+
+.nav {
+	border-bottom: 2px solid rgba($color: #000000, $alpha: 0.5);
+	background-color: #7994c2;
+	color: #ffffff;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.nav__list {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	padding: 5px 0;
+}
+
+.nav__list-item {
+	margin: 0 20px;
+	height: 45px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.nav__list-item:first-child {
+	margin-right: auto;
+	margin-left: 30px;
+}
+
+.nav__list-link {
+	color: #000000;
+	transition: all 0.1s ease-in-out;
+	font-size: 17px;
+	font-weight: 500;
+	height: 100%;
+	max-height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-bottom: 3px solid rgba(255, 255, 255, 0);
+}
+
+.nav__list-link:not(.not-hover):hover {
+	border-bottom: 3px solid rgb(2, 191, 2);
+}
+
+.auth:hover {
+	svg path {
+		fill: rgb(2, 191, 2);
+	}
+}

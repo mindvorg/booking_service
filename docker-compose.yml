@@ -1,0 +1,27 @@
+version: '1'
+services:
+  postgres-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: booking_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+#    volumes:
+#      - ./postgres-data:/var/lib/postgresql/data
+#      - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+#      - ./fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
+  back:
+    image: mindvorg/back:demo
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/booking_database
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+
+volumes:
+  postgres-data:
