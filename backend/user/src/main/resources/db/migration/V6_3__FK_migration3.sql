@@ -1,0 +1,3 @@
+ALTER TABLE "agents"
+    ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+        ON UPDATE NO ACTION ON DELETE NO ACTION;
