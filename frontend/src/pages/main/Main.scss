@@ -1,0 +1,21 @@
+// main.scss
+.main {
+	margin-bottom: 20px;
+}
+
+.apartments-list {
+	padding: 30px;
+	background-color: white;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: 1.5rem;
+	border-radius: 20px;
+}
+
+// Адаптивность
+@media (max-width: 768px) {
+	.apartments-list {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+}

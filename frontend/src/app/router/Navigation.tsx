@@ -8,12 +8,15 @@ interface NavigationProps {
 
 export const Navigation = ({ className }: NavigationProps) => {
 	return (
-		<Routes>
-			<Route path='/' element={<Main />} />
-			<Route
-				path="*"
-				element={<Navigate to="/" replace />}
-			/>
-		</Routes>
+		<div className="navigation">
+			<div className="container"><Routes>
+				<Route path='/' element={<Main />} />
+				<Route
+					path="*"
+					element={<Navigate to="/" replace />}
+				/>
+			</Routes>
+			</div>
+		</div>
 	);
 };

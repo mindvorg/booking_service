@@ -9,26 +9,28 @@ interface HeaderProps {
 export const Header = ({ className }: HeaderProps) => {
 	return (
 		<div className='header'>
-			<div className="container">
-				<div className="header-up">
-					<div className="location">
-						<Map color='#999999' />
-						<p>Санкт-Петербург</p>
-					</div>
-					<div className="auth">
-						<Login color='#999999' />
-						<p>Войти</p>
+			<div className="header-up">
+				<div className="container">
+					<div className="header-up-container">
+						<div className="location">
+							<Map color='#999999' />
+							<p>Санкт-Петербург</p>
+						</div>
+						<Link className="nav__list-link auth not-hover" to='/'>
+							<Login color='#999999' />
+							<p>Войти</p>
+						</Link>
 					</div>
 				</div>
-				<div className="header-main">
+			</div>
+			<div className="header-main">
+				<div className="container">
 					<ul className="nav__list">
 						<li className="nav__list-item">
-							<div className="logo">
-								<Link className="nav__list-link" to='/'>
-									<HouseLogo height={'60px'} width={'60px'} viewBox='0 0 25 25' />
-									<p>ООО "Бнал"</p>
-								</Link>
-							</div>
+							<Link className="nav__list-link logo not-hover" to='/'>
+								<HouseLogo color='#02bf02ff' height={'45px'} width={'45px'} viewBox='0 0 25 25' />
+								<p>ООО "Бнал"</p>
+							</Link>
 						</li>
 						<li className="nav__list-item"><Link className="nav__list-link" to='/'>Покупка</Link></li>
 						<li className="nav__list-item"><Link className="nav__list-link" to='/news'>Аренда</Link></li>
