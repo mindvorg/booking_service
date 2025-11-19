@@ -1,12 +1,23 @@
 import { Link } from 'react-router-dom';
 import { HouseLogo, Login, Map } from '../../shared/icons';
 import './Header.scss';
+import { useContext, useEffect } from 'react';
+import { Context } from '../../app/main';
+import { observer } from 'mobx-react-lite';
 
-interface HeaderProps {
-	className?: string;
-}
 
-export const Header = ({ className }: HeaderProps) => {
+const Header = () => {
+
+	const { store } = useContext(Context);
+
+	useEffect(() => {
+		if (localStorage.getItem('token')) {
+			store.checkAuth();
+		}
+	}, []);
+
+
+
 	return (
 		<div className='header'>
 			<div className="header-up">
@@ -16,10 +27,18 @@ export const Header = ({ className }: HeaderProps) => {
 							<Map color='#999999' />
 							<p>Санкт-Петербург</p>
 						</div>
-						<Link className="nav__list-link auth not-hover" to='/'>
-							<Login color='#999999' />
-							<p>Войти</p>
+						<Link className="nav__list-link auth not-hover" to='/auth'>
+							{
+								store.isAuth
+									? <p>{store.user.email}</p>
+									: <><Login color='#999999' /> <p>Войти</p></>
+							}
 						</Link>
+						{
+							store.user.role == "admin"
+								? <li className="nav__list-item"><Link className="nav__list-link" to='/admin'>Админ</Link></li>
+								: null
+						}
 					</div>
 				</div>
 			</div>
@@ -43,3 +62,5 @@ export const Header = ({ className }: HeaderProps) => {
 		</div>
 	);
 };
+
+export default observer(Header);
