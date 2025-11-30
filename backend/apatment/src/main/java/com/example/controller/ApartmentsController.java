@@ -3,10 +3,21 @@ package com.example.controller;
 import com.example.data.ApartmentsData;
 import com.example.service.ApartmentsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.util.List;
+import java.io.IOException;
+import java.net.URI;
+import java.util.*;
 
 @RestController
 @RequestMapping("/apartments")
@@ -35,6 +46,7 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartmentsService.saveApart(apart));
     }
 
+    //http://localhost:8080/apartments/search?minPrice=12500001&minRooms=3
     @GetMapping("/search")
     public ResponseEntity<List<ApartmentsData>> searchAparts(
             @RequestParam(required = false) String district,
@@ -50,19 +62,22 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartments);
     }
 
-//    @GetMapping("/district/{district}")
-//    public ResponseEntity<List<ApartmentsData>> getByDistrict(@PathVariable String district){
-//        return ResponseEntity.ok(apartmentsService.getByDistrict(district));
-//    }
-//    @GetMapping("/agent/{agent}")
-//    public ResponseEntity<List<ApartmentsData>> getByAgent(@PathVariable Long agent){
-//        return ResponseEntity.ok(apartmentsService.getByAgent(agent));
-//    }
-//    @GetMapping("/price-range")
-//    public ResponseEntity<List<ApartmentsData>> getApartmentsByPriceRange(
-//            @RequestParam(required = false) Integer minPrice,
-//            @RequestParam(required = false) Integer maxPrice) {
-//        List<ApartmentsData> apartments = apartmentsService.findByPriceRange(minPrice, maxPrice);
-//        return ResponseEntity.ok(apartments);
-//    }
+    @GetMapping("/searchText")
+    public ResponseEntity<List<ApartmentsData>> searchByText(String prompt) {
+        return ResponseEntity.ok(apartmentsService.searchByPrompt(prompt));
+    }
+
+
+    @PostMapping(value = "/photos/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<Map<String, String>>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
+        List<Map<String,String>> list;
+        try {
+            list = apartmentsService.uploadToS3(files);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(List.of(Map.of("error", "Ошибка при загрузке файлов: " + e.getMessage())));
+        }
+        return ResponseEntity.ok(list);
+    }
+
 }

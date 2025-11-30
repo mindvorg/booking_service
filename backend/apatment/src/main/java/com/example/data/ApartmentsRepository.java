@@ -60,4 +60,17 @@ public interface  ApartmentsRepository extends JpaRepository<ApartmentsData, Lon
                                               @Param("maxRooms") Short maxRooms,
                                               @Param("status") String status,
                                               @Param("apartType") String apartType);
+
+    @Query("SELECT a FROM ApartmentsData a WHERE " +
+            "LOWER(a.address) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(a.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(a.district) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(a.apartType) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(a.status) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "CAST(a.price AS string) LIKE CONCAT('%', :query, '%') OR " +
+            "CAST(a.houseDate AS string) LIKE CONCAT('%', :query, '%') OR " +
+            "CAST(a.roomNumber AS string) LIKE CONCAT('%', :query, '%') OR " +
+            "CAST(a.floor AS string) LIKE CONCAT('%', :query, '%') OR " +
+            "CAST(a.square AS string) LIKE CONCAT('%', :query, '%')")
+    List<ApartmentsData> findBySearchText(@Param("query") String query);
 }

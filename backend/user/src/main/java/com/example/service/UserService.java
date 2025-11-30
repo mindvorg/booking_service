@@ -5,6 +5,9 @@ import com.example.data.agent.AgentRepository;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,5 +38,15 @@ public class UserService {
     }
     public Optional<AgentData> findAgentById(Long id){
         return agentRepository.findById(id);
+    }
+
+    public UserDetails loadUserByUsername(String username) {
+        UserData user= userRepository.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException("User not found"));
+
+        return User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .authorities(user.getRole().toString())
+                .build();
     }
 }
