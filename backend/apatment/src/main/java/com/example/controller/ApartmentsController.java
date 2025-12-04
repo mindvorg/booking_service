@@ -3,21 +3,15 @@ package com.example.controller;
 import com.example.data.ApartmentsData;
 import com.example.service.ApartmentsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/apartments")
@@ -69,15 +63,20 @@ public class ApartmentsController {
 
 
     @PostMapping(value = "/photos/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<Map<String, String>>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
-        List<Map<String,String>> list;
+    public ResponseEntity<List<String>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
+        System.err.println(files.getFirst().isEmpty());
+        List<String> list;
         try {
             list = apartmentsService.uploadToS3(files);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(List.of(Map.of("error", "Ошибка при загрузке файлов: " + e.getMessage())));
+                    .body(List.of("error", "Ошибка при загрузке файлов: " + e.getMessage()));
         }
         return ResponseEntity.ok(list);
     }
 
+    @DeleteMapping("/photos/delete")
+    public ResponseEntity<List<String>> deletePhoto(@RequestBody List<String> paths) {
+        return ResponseEntity.ok(apartmentsService.deletePhotosFromS3(paths));
+    }
 }

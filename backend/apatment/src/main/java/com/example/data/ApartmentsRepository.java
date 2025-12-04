@@ -45,14 +45,15 @@ public interface  ApartmentsRepository extends JpaRepository<ApartmentsData, Lon
     @Query(value = "SELECT * FROM apartment WHERE status = 'AVAILABLE' AND REPLACE(price, ' ', '')::numeric BETWEEN :minPrice AND :maxPrice", nativeQuery = true)
     List<ApartmentsData> findAvailableByPriceRangeNative(@Param("minPrice") Integer minPrice, @Param("maxPrice") Integer maxPrice);
 
-    @Query("SELECT a FROM ApartmentsData a WHERE " +
-            "(:district IS NULL OR LOWER(a.district) LIKE LOWER(CONCAT('%', :district, '%'))) AND " +
+    @Query(value = "SELECT * FROM apartment a WHERE " +
+            "(:district IS NULL OR a.district LIKE '%' || :district || '%') AND " +
             "(:minPrice IS NULL OR a.price >= :minPrice) AND " +
             "(:maxPrice IS NULL OR a.price <= :maxPrice) AND " +
-            "(:minRooms IS NULL OR a.roomNumber >= :minRooms) AND " +
-            "(:maxRooms IS NULL OR a.roomNumber <= :maxRooms) AND " +
+            "(:minRooms IS NULL OR a.room_number >= :minRooms) AND " +
+            "(:maxRooms IS NULL OR a.room_number <= :maxRooms) AND " +
             "(:status IS NULL OR a.status = :status) AND " +
-            "(:apartType IS NULL OR a.apartType = :apartType)")
+            "(:apartType IS NULL OR a.apart_type = :apartType)",
+            nativeQuery = true)
     List<ApartmentsData> findBySearchCriteria(@Param("district") String district,
                                               @Param("minPrice") Integer minPrice,
                                               @Param("maxPrice") Integer maxPrice,
