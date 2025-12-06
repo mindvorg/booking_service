@@ -1,10 +1,14 @@
 package com.example.controller;
 
+import com.example.service.PhotoService;
 import com.example.data.ApartmentsData;
 import com.example.service.ApartmentsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -13,10 +17,12 @@ import java.util.List;
 public class ApartmentsController {
 
     private final ApartmentsService apartmentsService;
+    private final PhotoService photoService;
 
     @Autowired
-    public ApartmentsController(ApartmentsService apartmentsService) {
+    public ApartmentsController(ApartmentsService apartmentsService, PhotoService photoService) {
         this.apartmentsService = apartmentsService;
+        this.photoService = photoService;
     }
 
     @GetMapping("/all")
@@ -35,6 +41,7 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartmentsService.saveApart(apart));
     }
 
+    //http://localhost:8080/apartments/search?minPrice=12500001&minRooms=3
     @GetMapping("/search")
     public ResponseEntity<List<ApartmentsData>> searchAparts(
             @RequestParam(required = false) String district,
@@ -50,19 +57,11 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartments);
     }
 
-//    @GetMapping("/district/{district}")
-//    public ResponseEntity<List<ApartmentsData>> getByDistrict(@PathVariable String district){
-//        return ResponseEntity.ok(apartmentsService.getByDistrict(district));
-//    }
-//    @GetMapping("/agent/{agent}")
-//    public ResponseEntity<List<ApartmentsData>> getByAgent(@PathVariable Long agent){
-//        return ResponseEntity.ok(apartmentsService.getByAgent(agent));
-//    }
-//    @GetMapping("/price-range")
-//    public ResponseEntity<List<ApartmentsData>> getApartmentsByPriceRange(
-//            @RequestParam(required = false) Integer minPrice,
-//            @RequestParam(required = false) Integer maxPrice) {
-//        List<ApartmentsData> apartments = apartmentsService.findByPriceRange(minPrice, maxPrice);
-//        return ResponseEntity.ok(apartments);
-//    }
+    @GetMapping("/searchText")
+    public ResponseEntity<List<ApartmentsData>> searchByText(String prompt) {
+        return ResponseEntity.ok(apartmentsService.searchByPrompt(prompt));
+    }
+
+
+
 }
