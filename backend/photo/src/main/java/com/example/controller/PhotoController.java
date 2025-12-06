@@ -25,7 +25,6 @@ public class PhotoController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<String>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
-        System.err.println(files.getFirst().isEmpty());
         List<String> list;
         try {
             list = photoService.uploadToS3(files);

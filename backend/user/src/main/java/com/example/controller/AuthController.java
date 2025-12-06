@@ -33,7 +33,7 @@ public class AuthController {
 
     //DTO(name,mail,role)+token
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequest) {
+    public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequest) {//убрать токен
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                     authRequest.getEmail(),

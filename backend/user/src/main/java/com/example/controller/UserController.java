@@ -38,14 +38,14 @@ public class UserController {
     @PostMapping("/registration")
     @Transactional
     public ResponseEntity<Map<String, Object>> regUser(@RequestBody UserDTO userDTO) {
+        System.err.println("huy");
         UserData tmp= UserData.builder()
                 .email(userDTO.getEmail())
                 .password(userDTO.getPassword())
                 .name(userDTO.getName())
                 .role(UserRole.valueOf(userDTO.getRole()))
                 .build();
-        UserData userData = userService.saveUser(tmp
-               );
+        UserData userData = userService.saveUser(tmp);
         AgentData agentData = null;
         if (UserRole.valueOf(userDTO.getRole()).equals(UserRole.AGENT)) {
             AgentData tmpA =AgentData.builder()

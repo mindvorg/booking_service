@@ -1,12 +1,10 @@
--- V8_1__Insert_test_data.sql
-
 -- Вставка пользователей
 INSERT INTO "users" ("email", "password", "name", "role")
-VALUES ('ivan.petrov@example.com', 'hashed_password_1', 'Иван Петров', 'user'),
-       ('maria.sidorova@example.com', 'hashed_password_2', 'Мария Сидорова', 'user'),
-       ('alexei.kozlov@example.com', 'hashed_password_3', 'Алексей Козлов', 'user'),
-       ('anna.agent@example.com', 'hashed_password_4', 'Анна Иванова', 'agent'),
-       ('sergei.agent@example.com', 'hashed_password_5', 'Сергей Смирнов', 'agent');
+VALUES ('ivan.petrov@example.com', 'hashed_password_1', 'Иван Петров', 'USER'),
+       ('maria.sidorova@example.com', 'hashed_password_2', 'Мария Сидорова', 'USER'),
+       ('alexei.kozlov@example.com', 'hashed_password_3', 'Алексей Козлов', 'USER'),
+       ('anna.agent@example.com', 'hashed_password_4', 'Анна Иванова', 'AGENT'),
+       ('sergei.agent@example.com', 'hashed_password_5', 'Сергей Смирнов', 'AGENT');
 
 -- Вставка агентов (используем пользователей с ролью agent)
 INSERT INTO "agents" ("user_id", "company_name", "avatar")

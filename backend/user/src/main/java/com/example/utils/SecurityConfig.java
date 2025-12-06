@@ -15,6 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -26,16 +30,28 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Arrays.asList(
+                            "http://localhost:3000",
+                            "http://localhost:5173"  // ← ДОБАВЬТЕ ЭТОТ АДРЕС
+                    ));
+                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setExposedHeaders(Collections.singletonList("Authorization"));
+                    config.setMaxAge(3600L);
+                    return config;
+                }))
                 .authorizeHttpRequests(authz -> authz
                         // Публичные endpoints (доступны без аутентификации)
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/login/test").permitAll()
-                        .requestMatchers("/users/saveUser").permitAll()
+                        .requestMatchers("/users/registration").permitAll()
                         .requestMatchers("/users/saveAgent").permitAll()
-
-//                        .requestMatchers("/photo/**").permitAll()
-
 
                         // Загрузка фото должна быть защищена (только для агентов)
                         .requestMatchers(HttpMethod.POST, "/photo/**").authenticated()
