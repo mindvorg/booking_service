@@ -1,22 +1,18 @@
 import { Link } from 'react-router-dom';
 import { HouseLogo, Login, Map } from '../../shared/icons';
-import './Header.scss';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { Context } from '../../app/main';
 import { observer } from 'mobx-react-lite';
-
+import './Header.scss';
 
 const Header = () => {
 
 	const { store } = useContext(Context);
 
-	useEffect(() => {
-		if (localStorage.getItem('token')) {
-			store.checkAuth();
-		}
-	}, []);
-
-
+	const getLatestApart = () => {
+		const years = new Date().getFullYear();
+		return `/apartments?houseDate=${years - 5}-${years}`;
+	};
 
 	return (
 		<div className='header'>
@@ -27,15 +23,16 @@ const Header = () => {
 							<Map color='#999999' />
 							<p>Санкт-Петербург</p>
 						</div>
-						<Link className="nav__list-link auth not-hover" to='/auth'>
-							{
-								store.isAuth
-									? <p>{store.user.email}</p>
-									: <><Login color='#999999' /> <p>Войти</p></>
-							}
+						<Link className="nav__list-link not-hover" to='/create-apartment'>
+							<button className="btn">Новое обновление</button>
 						</Link>
 						{
-							store.user.role == "admin"
+							store.isAuth
+								? <Link className="nav__list-link auth not-hover" to='/profile'><p>Профиль</p></Link>
+								: <Link className="nav__list-link auth not-hover" to='/auth'><Login color='#999999' /> <p>Войти</p></Link>
+						}
+						{
+							store.user.role == "ADMIN"
 								? <li className="nav__list-item"><Link className="nav__list-link" to='/admin'>Админ</Link></li>
 								: null
 						}
@@ -51,11 +48,10 @@ const Header = () => {
 								<p>ООО "Бнал"</p>
 							</Link>
 						</li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/'>Покупка</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/news'>Аренда</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/calendar'>Новостройки</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/studboard'>Риелторы</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/contacts'>Журнал</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments'>Покупка</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments?status=1'>Аренда</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to={`${getLatestApart()}`}>Новостройки</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/agents'>Риелторы</Link></li>
 					</ul>
 				</div>
 			</div>

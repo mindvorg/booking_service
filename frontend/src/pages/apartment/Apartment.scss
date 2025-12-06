@@ -1,0 +1,340 @@
+.apartment-page {
+	padding: 2rem 0;
+}
+
+.apartment-container {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.apartment-loading {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 400px;
+	font-size: 1.2rem;
+	color: #666;
+}
+
+// Заголовок и цена
+.apartment-header {
+	display: flex;
+	justify-content: space-between; // Исправлено: было "between"
+	align-items: flex-start;
+	margin-bottom: 2rem;
+	gap: 2rem;
+}
+
+.apartment-title {
+	font-size: 2rem;
+	font-weight: 600;
+	color: #333;
+	margin: 0;
+	flex: 1;
+}
+
+.apartment-price {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: #20ab5f;
+	white-space: nowrap;
+}
+
+// Основной контент
+.apartment-content {
+	display: flex;
+	flex-direction: column;
+	gap: 3rem;
+	align-items: start;
+}
+
+// Галерея
+.apartment-gallery {
+	width: 100%;
+
+	.apartment-swiper {
+		height: 500px;
+		position: relative; // важно!
+		border-radius: 12px;
+		overflow: hidden;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.swiper-slide-content {
+		height: 400px;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+	}
+
+	// --- Кнопки навигации ---
+	.swiper-button-prev,
+	.swiper-button-next {
+		position: absolute;
+		top: 50%;
+		z-index: 10;
+
+		width: 42px;
+		height: 42px;
+		border-radius: 50%;
+
+		background: rgba(255, 255, 255, 0.8);
+		backdrop-filter: blur(4px);
+
+		display: flex;
+		justify-content: center;
+		align-items: center;
+
+		color: #20ab5f !important;
+	}
+
+	// Левая кнопка
+	.swiper-button-prev {
+		left: 12px !important;
+		right: auto !important;
+		rotate: 180deg;
+	}
+
+	// Правая кнопка
+	.swiper-button-next {
+		right: 12px !important;
+		left: auto !important;
+	}
+
+	// --- Точки пагинации ---
+	.swiper-pagination {
+		bottom: 10px !important;
+	}
+
+	.swiper-pagination-bullet {
+		background: rgba(255, 255, 255, 0.7);
+		opacity: 1;
+		margin: 0 6px !important;
+	}
+
+	.swiper-pagination-bullet-active {
+		background: #20ab5f;
+	}
+}
+
+// Адаптивность для карусели
+@media (max-width: 768px) {
+	.apartment-gallery {
+
+		.swiper-slide-content {
+			height: 300px;
+		}
+
+		// Прячем кнопки на мобилках
+		.swiper-button-next,
+		.swiper-button-prev {
+			display: none !important;
+		}
+	}
+}
+
+// Детали
+.apartment-details-card {
+	width: 100%;
+	padding: 0;
+
+	.detail-section {
+		background: white;
+		border-radius: 12px;
+		padding: 1.5rem;
+		margin-bottom: 1.5rem;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+		h3 {
+			font-size: 1.3rem;
+			font-weight: 600;
+			color: #333;
+			margin: 0 0 1rem 0;
+		}
+	}
+}
+
+// Статус
+.status-badge {
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	text-transform: uppercase;
+
+	&.status-активна,
+	&.status-available {
+		background: #e8f5e8;
+		color: #20ab5f;
+	}
+
+	&.status-продана,
+	&.status-sold {
+		background: #f0f0f0;
+		color: #666;
+	}
+
+	&.status-бронь,
+	&.status-reserved {
+		background: #fff3cd;
+		color: #856404;
+	}
+}
+
+// Характеристики
+.features-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 1rem;
+}
+
+.feature {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.75rem 0;
+	border-bottom: 1px solid #f0f0f0;
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.feature-label {
+	color: #666;
+	font-size: 0.95rem;
+}
+
+.feature-value {
+	font-weight: 600;
+	color: #333;
+}
+
+// Адрес
+.address-text {
+	font-size: 1.1rem;
+	color: #333;
+	margin: 0 0 1rem 0;
+	line-height: 1.5;
+}
+
+.map-button {
+	background: transparent;
+	border: 2px solid #20ab5f;
+	color: #20ab5f;
+	padding: 0.5rem 1rem;
+	border-radius: 6px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+
+	&:hover {
+		background: #20ab5f;
+		color: white;
+	}
+}
+
+// Описание
+.description-text {
+	color: #666;
+	line-height: 1.6;
+	margin: 0;
+	font-size: 1rem;
+}
+
+// Контакты
+.contact-info {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+
+.agent-info {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex: 1;
+}
+
+.agent-avatar {
+	width: 50px;
+	height: 50px;
+	background: #f0f0f0;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+}
+
+.agent-details {
+	display: flex;
+	flex-direction: column;
+}
+
+.agent-name {
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 0.25rem;
+}
+
+.agent-phone {
+	color: #666;
+	font-size: 0.9rem;
+}
+
+.contact-button {
+	background: #20ab5f;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 6px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	white-space: nowrap;
+
+	&:hover {
+		background: #188b4b;
+		transform: translateY(-1px);
+	}
+}
+
+// Адаптивность
+@media (max-width: 968px) {
+	.apartment-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.apartment-title {
+		font-size: 1.7rem;
+	}
+
+	.apartment-price {
+		font-size: 2rem;
+	}
+}
+
+@media (max-width: 768px) {
+	.features-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.contact-info {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 1rem;
+	}
+
+	.apartment-page {
+		padding: 1rem 0;
+	}
+}

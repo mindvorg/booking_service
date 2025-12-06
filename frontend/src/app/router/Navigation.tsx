@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router";
 import { Navigate } from 'react-router-dom';
-import { Admin, Apartment, Apartments, Main, } from '../../pages';
+import { Admin, Apartment, Apartments, CreateApartment, Main } from '../../pages';
 import { Auth } from '../../widget';
 import { type JSX, useContext } from 'react';
 import { Context } from '../main';
@@ -10,14 +10,14 @@ const ProtectedRoute = ({ children, requiredRole }: { children: JSX.Element, req
 	const { store } = useContext(Context);
 
 	// Если пользователь не авторизован
-	if (!store.user) {
+	/*if (!store.user) {
 		return <Navigate to="/auth" replace />;
-	}
+	}*/
 
 	// Если требуется определенная роль и у пользователя ее нет
-	if (requiredRole && store.user.role !== requiredRole) {
+	/*if (requiredRole && store.user.role !== requiredRole) {
 		return <Navigate to="/" replace />;
-	}
+	}*/
 
 	return children;
 };
@@ -32,9 +32,18 @@ export const Navigation = () => {
 					<Route path='/apartments/:id' element={<Apartment />} />
 					<Route path='/auth' element={<Auth />} />
 					<Route path='/admin' element={
-						<ProtectedRoute requiredRole="Админ">
+						<ProtectedRoute requiredRole='ADMIN'>
 							<Admin />
-						</ProtectedRoute>} />
+						</ProtectedRoute>}
+					/>
+					<Route path='/profile' element={
+						<Auth />
+					}
+					/>
+
+					<Route path='/create-apartment' element={<CreateApartment />} />
+					<Route path='/edit-apartment/:id' element={<CreateApartment />} />
+
 					<Route
 						path="*"
 						element={<Navigate to="/" replace />}

@@ -1,6 +1,6 @@
 export interface Apartment {
 	id: number;
-	status: string;
+	status: number;
 	address: string;
 	houseDate: number;
 	floor: number;
@@ -8,7 +8,7 @@ export interface Apartment {
 	roomNumber: number;
 	price: number;
 	agentId: number;
-	photo: string;
+	photos: string[];
 	description: string;
 	district: string;
 	apartType: string;
@@ -17,13 +17,30 @@ export interface Apartment {
 
 export interface AuthResponse {
 	accessToken: string;
-	refreshToken: string;
 	user: IUser;
 }
 
 export interface IUser {
 	email: string;
-	isActivated: boolean;
+	name: string;
 	id: string;
-	role: string;
+	role: 'USER' | 'AGENT' | 'ADMIN';
+	companyName?: string;
+	avatar?: string;
 }
+
+export type PhotoItem = {
+	file: File | null;
+	url: string;
+	name: string;
+	sizeText: string;
+	isExisting?: boolean;
+};
+
+export type IRegistration = {
+	email: string;
+	name: string;
+	role: 'USER' | 'AGENT';
+	companyName?: string;
+	avatar?: string;
+};

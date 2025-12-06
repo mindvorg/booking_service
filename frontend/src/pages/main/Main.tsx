@@ -10,7 +10,6 @@ export const Main = () => {
 
 	return (
 		<div className="main-page">
-			{/* Герой секция */}
 			<section className="hero-section">
 				<div className="hero-content">
 					<h1 className="hero-title">Найдите свою идеальную квартиру</h1>
@@ -29,7 +28,6 @@ export const Main = () => {
 				</div>
 			</section>
 
-			{/* Преимущества */}
 			<section className="features-section">
 				<h2 className="section-title">Почему выбирают нас</h2>
 				<div className="features-grid">
@@ -56,7 +54,6 @@ export const Main = () => {
 				</div>
 			</section>
 
-			{/* Как мы работаем */}
 			<section className="process-section">
 				<h2 className="section-title">Как мы работаем</h2>
 				<div className="process-steps">
@@ -83,7 +80,6 @@ export const Main = () => {
 				</div>
 			</section>
 
-			{/* CTA секция */}
 			<section className="cta-section">
 				<div className="cta-content">
 					<h2>Готовы найти свой дом?</h2>
