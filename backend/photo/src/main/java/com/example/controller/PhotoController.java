@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/photo")
+@CrossOrigin(origins = "*")
 public class PhotoController {
 
 
