@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="feedback" />
+        <module name="photo" />
         <module name="user" />
         <module name="booking_main_app" />
         <module name="apatment" />
@@ -19,6 +20,7 @@
       <module name="apatment" options="-parameters" />
       <module name="booking_main_app" options="-parameters" />
       <module name="feedback" options="-parameters" />
+      <module name="photo" options="-parameters" />
       <module name="user" options="-parameters" />
     </option>
   </component>

@@ -19,6 +19,7 @@
         <module>apatment</module>
         <module>feedback</module>
         <module>user</module>
+        <module>photo</module>
     </modules>
     <scm>
         <connection/>

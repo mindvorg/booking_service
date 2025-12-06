@@ -1,39 +1,91 @@
 package com.example.controller;
 
+import com.example.data.UserDTO;
 import com.example.data.agent.AgentData;
 import com.example.data.user.UserData;
+import com.example.data.user.UserRole;
 import com.example.service.UserService;
+import com.example.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
+    private final JwtTokenUtil jwtTokenUtil;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtTokenUtil jwtTokenUtil) {
         this.userService = userService;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 
+    /**
+     * При регистрации выбирается роль и в зависимости от выбранной роли не обязательно есть еще компания и аватарка.
+     *
+     */
+    @PostMapping("/registration")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> regUser(@RequestBody UserDTO userDTO) {
+        UserData tmp= UserData.builder()
+                .email(userDTO.getEmail())
+                .password(userDTO.getPassword())
+                .name(userDTO.getName())
+                .role(UserRole.valueOf(userDTO.getRole()))
+                .build();
+        UserData userData = userService.saveUser(tmp
+               );
+        AgentData agentData = null;
+        if (UserRole.valueOf(userDTO.getRole()).equals(UserRole.AGENT)) {
+            AgentData tmpA =AgentData.builder()
+                    .userId(userData.getId())
+                    .avatar(userDTO.getAvatar())
+                    .companyName(userDTO.getCompanyName())
+                    .build();
+            agentData=userService.saveAgent(tmpA);
+        }
 
-    @PostMapping("/saveUser")
-    public ResponseEntity<UserData> regUser(@RequestBody UserData user) {
-        return ResponseEntity.ok(userService.saveUser(user));
+
+        final UserDetails userDetails = userService.loadUserByUsername(userData.getEmail());
+        final String token = jwtTokenUtil.generateToken(userDetails);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("email", userData.getEmail());
+
+        response.put("name", userData.getName());
+        response.put("role", userData.getRole().name());
+
+        if (userData.getRole() == UserRole.AGENT) {
+            if (agentData != null) {
+                response.put("agentId", agentData.getId());
+                response.put("companyName", agentData.getCompanyName());
+            }
+        }
+
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/saveAgent")
-    public ResponseEntity<AgentData> regAgent(@RequestBody AgentData user) {
-        return ResponseEntity.ok(userService.saveAgent(user));
+    @PostMapping("/saveAgentForUser")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<AgentData> regAgentForUser(@RequestBody AgentData agentData) {
+        return ResponseEntity.ok(userService.saveAgentWithUserId(agentData));
     }
 
-    @GetMapping("/profile")
+    @GetMapping("/profile/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> getUserProfile() {
-        return ResponseEntity.ok("This is protected user profile");
+    public ResponseEntity<UserData> getUserProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUser(id));
     }
 
     @GetMapping("/admin")
@@ -42,4 +94,17 @@ public class UserController {
         return ResponseEntity.ok("This is admin data");
     }
 
+    @GetMapping("/agent/{userId}")
+    public ResponseEntity<UserService.AgentInfoDTO> getAgentInfo(@PathVariable Long userId) {
+        UserService.AgentInfoDTO agentInfo = userService.getAgentInfo(userId);
+        if (agentInfo != null) {
+            return ResponseEntity.ok(agentInfo);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/agents")
+    public ResponseEntity<List<UserService.AgentInfoDTO>> getAllAgents() {
+        return ResponseEntity.ok(userService.findAllAgents());
+    }
 }

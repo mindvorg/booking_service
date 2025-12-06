@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.service.PhotoService;
 import com.example.data.ApartmentsData;
 import com.example.service.ApartmentsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,19 +10,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/apartments")
 public class ApartmentsController {
 
     private final ApartmentsService apartmentsService;
+    private final PhotoService photoService;
 
     @Autowired
-    public ApartmentsController(ApartmentsService apartmentsService) {
+    public ApartmentsController(ApartmentsService apartmentsService, PhotoService photoService) {
         this.apartmentsService = apartmentsService;
+        this.photoService = photoService;
     }
 
     @GetMapping("/all")
@@ -62,21 +63,5 @@ public class ApartmentsController {
     }
 
 
-    @PostMapping(value = "/photos/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<String>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
-        System.err.println(files.getFirst().isEmpty());
-        List<String> list;
-        try {
-            list = apartmentsService.uploadToS3(files);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(List.of("error", "Ошибка при загрузке файлов: " + e.getMessage()));
-        }
-        return ResponseEntity.ok(list);
-    }
 
-    @DeleteMapping("/photos/delete")
-    public ResponseEntity<List<String>> deletePhoto(@RequestBody List<String> paths) {
-        return ResponseEntity.ok(apartmentsService.deletePhotosFromS3(paths));
-    }
 }

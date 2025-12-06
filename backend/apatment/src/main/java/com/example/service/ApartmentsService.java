@@ -2,9 +2,15 @@ package com.example.service;
 
 import com.example.data.ApartmentsData;
 import com.example.data.ApartmentsRepository;
+import com.example.data.agent.AgentData;
+import com.example.data.user.UserData;
+import com.example.data.user.UserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,26 +34,13 @@ import java.util.UUID;
 @Slf4j
 public class ApartmentsService {
 
-    @Value("${yandex.bucket}")
-    private String bucket;
-    private final S3Client s3Client;
-
     private final ApartmentsRepository apartmentsRepository;
     private final UserService userService;
 
     @Autowired
-    public ApartmentsService(@Value("${yandex.access-key-id}") String accessKeyId,
-                             @Value("${yandex.secret-access-key}") String secretAccessKey,
-                             @Value("${yandex.region}") String region,
-                             ApartmentsRepository apartmentsRepository, UserService userService) {
+    public ApartmentsService(ApartmentsRepository apartmentsRepository, UserService userService) {
         this.apartmentsRepository = apartmentsRepository;
         this.userService = userService;
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
-        this.s3Client = S3Client.builder()
-                .region(Region.of(region))
-                .endpointOverride(URI.create("https://storage.yandexcloud.net"))
-                .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .build();
     }
 
     @Transactional
@@ -68,9 +61,20 @@ public class ApartmentsService {
         return apartmentsRepository.getAllBySquare(square);
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ApartmentsData saveApart(ApartmentsData apartmentsData) {
-        userService.findAgentById(Long.valueOf(apartmentsData.getAgentId()))
-                .orElseThrow(() -> new NoSuchFieldError("User not found with id: " + apartmentsData.getAgentId()));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserEmail = authentication.getName();
+        Optional<UserData> user = userService.findUserByEmail(currentUserEmail);
+        if (user.isEmpty()) {
+            throw new NoSuchFieldError("User not found with id: " + apartmentsData.getAgentId());
+        }
+        UserData userData = user.get();
+        Optional<AgentData> agent = userService.findAgentByUserId(userData.getId());
+        apartmentsData.setAgentId(userData.getId());
+
         return apartmentsRepository.save(apartmentsData);
     }
 
@@ -87,11 +91,34 @@ public class ApartmentsService {
         return apartmentsRepository.getAllByAgentId(agent);
     }
 
+    @PreAuthorize("isAuthenticated()")
+    public List<ApartmentsData> getMyApartments() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserEmail = authentication.getName();
+
+        // Находим пользователя по email
+        Optional<UserData> user = userService.findUserByEmail(currentUserEmail);
+        if (user.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        UserData userData = user.get();
+
+        // Если это агент, возвращаем его квартиры
+        if (userData.getRole() == UserRole.AGENT) {
+            return apartmentsRepository.getAllByAgentId(userData.getId());
+        }
+
+        // Если это обычный пользователь, можно вернуть избранные квартиры
+        // Пока возвращаем пустой список
+        return new ArrayList<>();
+    }
+
     public List<ApartmentsData> searchByPrompt(String prompt) {
         return apartmentsRepository.findBySearchText(prompt);
     }
 
-//    public List<Map<String, String>> uploadToS3(List<MultipartFile> files) throws IOException {//переписать только чтоб ссылка возвращалась
+    //    public List<Map<String, String>> uploadToS3(List<MultipartFile> files) throws IOException {//переписать только чтоб ссылка возвращалась
 //
 //        List<Map<String, String>> uploadedFiles = new ArrayList<>();
 //
@@ -124,79 +151,15 @@ public class ApartmentsService {
 //        }
 //        return uploadedFiles;
 //    }
-    public List< String> uploadToS3(List<MultipartFile> files) throws IOException {//переписать только чтоб ссылка возвращалась
 
-        List<String> uploadedFiles = new ArrayList<>();
 
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                String originalFileName = file.getOriginalFilename();
-                String fileExtension = getFileExtension(originalFileName);
-                String uniqueFileName = UUID.randomUUID() + "." + fileExtension;
-                String key = "photos/" + uniqueFileName;
-
-                PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(key)
-                        .contentType(file.getContentType())
-                        .build();
-
-                s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
-
-                String fileUrl = generatePublicUrl(key);
-
-                uploadedFiles.add(uniqueFileName);
-            }
+    public UserService.AgentInfoDTO getAgentInfoForApartment(Long apartmentId) {
+        Optional<ApartmentsData> apartment = apartmentsRepository.findById(apartmentId);
+        if (apartment.isPresent()) {
+            Long agentId = apartment.get().getAgentId();
+            return userService.getAgentInfo(agentId);
         }
-        return uploadedFiles;
+        return null;
     }
-
-    // Генерация публичного URL
-    private String generatePublicUrl(String key) {
-        return String.format("https://%s.storage.yandexcloud.net/%s", bucket, key);
-    }
-
-    // Получение расширения файла
-    private String getFileExtension(String fileName) {
-        return fileName != null && fileName.contains(".")
-                ? fileName.substring(fileName.lastIndexOf(".") + 1)
-                : "jpg";
-    }
-
-    public List<String> deletePhotosFromS3(List<String> fileNames) {
-        List<String> result = new ArrayList<>();
-
-        if (fileNames == null || fileNames.isEmpty()) {
-            return result;
-        }
-
-        for (String fileName : fileNames) {
-            if (fileName == null || fileName.trim().isEmpty()) {
-                result.add("");
-                continue;
-            }
-
-            try {
-                String key = "photos/" + fileName;
-
-                s3Client.deleteObject(builder -> builder
-                        .bucket(bucket)
-                        .key(key));
-
-                result.add("");
-                log.info("Successfully deleted file: {}", fileName);
-
-            } catch (software.amazon.awssdk.services.s3.model.NoSuchKeyException e) {
-                result.add("");
-                log.warn("File not found, already deleted: {}", fileName);
-            } catch (Exception e) {
-                result.add(fileName);
-                log.error("Error deleting file from S3: {}. Error: {}", fileName, e.getMessage());
-            }
-        }
-
-        return result;
-    }
-
 
 }
