@@ -1,11 +1,8 @@
 package com.example.controller;
 
-import com.example.data.UserDTO;
 import com.example.data.agent.AgentData;
 import com.example.data.user.UserData;
-import com.example.data.user.UserRole;
 import com.example.service.UserService;
-import com.example.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,12 +71,6 @@ public class UserController {
         }
 
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/saveAgentForUser")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<AgentData> regAgentForUser(@RequestBody AgentData agentData) {
-        return ResponseEntity.ok(userService.saveAgentWithUserId(agentData));
     }
 
     @GetMapping("/profile/{id}")
