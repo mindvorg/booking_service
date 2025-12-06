@@ -33,7 +33,6 @@ public class UserController {
 
     /**
      * При регистрации выбирается роль и в зависимости от выбранной роли не обязательно есть еще компания и аватарка.
-     *
      */
     @PostMapping("/registration")
     @Transactional
@@ -99,7 +98,7 @@ public class UserController {
     }
 
     @GetMapping("/agents")
-    public ResponseEntity<List<UserService.AgentInfoDTO>> getAllAgents() {
+    public ResponseEntity<List<AgentData>> getAllAgents() {
         return ResponseEntity.ok(userService.findAllAgents());
     }
 }
