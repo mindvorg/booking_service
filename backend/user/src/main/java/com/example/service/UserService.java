@@ -145,16 +145,16 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public List<AgentInfoDTO> findAllAgents() {
-        List<AgentInfoDTO> agentsInfo = new ArrayList<>();
-        List<AgentData> agents = agentRepository.findAll();
+    public List<AgentData> findAllAgents() {
+//        List<AgentInfoDTO> agentsInfo = new ArrayList<>();
+//        List<AgentData> agents = agentRepository.findAll();
+//
+//        for (AgentData agent : agents) {
+//            Optional<UserData> user = userRepository.findById(agent.getUserId());
+//            user.ifPresent(userData -> agentsInfo.add(new AgentInfoDTO(userData, agent)));
+//        }
 
-        for (AgentData agent : agents) {
-            Optional<UserData> user = userRepository.findById(agent.getUserId());
-            user.ifPresent(userData -> agentsInfo.add(new AgentInfoDTO(userData, agent)));
-        }
-
-        return agentsInfo;
+        return agentRepository.findAll();
     }
 
     @Transactional

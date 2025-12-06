@@ -28,29 +28,25 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
-                        // Публичные endpoints (доступны без аутентификации)
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/login/test").permitAll()
-                        .requestMatchers("/users/saveUser").permitAll()
-                        .requestMatchers("/users/saveAgent").permitAll()
+                                // Публичные endpoints (доступны без аутентификации)
+                                .requestMatchers("/auth/login").permitAll()
+                                .requestMatchers("/auth/login/test").permitAll()
+                                .requestMatchers("/users/registration").permitAll()
+//                                .requestMatchers("/users/agents").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()
 
-//                        .requestMatchers("/photo/**").permitAll()
+                                // Загрузка фото должна быть защищена (только для агентов)
+                                .requestMatchers(HttpMethod.POST, "/photo/**").authenticated()
+
+                                // Удаление фото должно быть защищено
+                                .requestMatchers(HttpMethod.DELETE, "/photo/**").authenticated()
+
+                                // Сохранение квартир - только для авторизованных
+                                .requestMatchers(HttpMethod.POST, "/apartments/saveApart").authenticated()
 
 
-                        // Загрузка фото должна быть защищена (только для агентов)
-                        .requestMatchers(HttpMethod.POST, "/photo/**").authenticated()
-
-                        // Удаление фото должно быть защищено
-                        .requestMatchers(HttpMethod.DELETE, "/photo/**").authenticated()
-
-                        // Сохранение квартир - только для авторизованных
-                        .requestMatchers(HttpMethod.POST, "/apartments/saveApart").authenticated()
-
-                        // Просмотр квартир доступен всем
-                        .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()
-
-                        // Все остальные запросы требуют аутентификации
-                        .anyRequest().authenticated()
+                                // Все остальные запросы требуют аутентификации
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
