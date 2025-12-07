@@ -177,7 +177,7 @@ public class ApartmentsService {
         return apartmentsRepository.save(existApart.get());
     }
 
-    public FeedbackData getFeedbackById(Long id) {
+    public List<FeedbackData> getFeedbackById(Long id) {
         return feedbackRepository.getByApartId(id);
     }
 

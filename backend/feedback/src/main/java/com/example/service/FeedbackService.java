@@ -21,7 +21,7 @@ public class FeedbackService {
         this.feedbackRepository = feedbackRepository;
     }
 
-    public List<String> getFeedbackOnAgentById(Long agentId) {
+    public List<AgentsFeedbackData> getFeedbackOnAgentById(Long agentId) {
         return agentsFeedbackRepository.getAllByAgentId(agentId);
     }
 

@@ -86,7 +86,7 @@ public class ApartmentsController {
     }
 
     @GetMapping("/feedback/{id}")
-    public ResponseEntity<FeedbackData> getApartmentFeedback(@PathVariable Long id) {
+    public ResponseEntity<List<FeedbackData>> getApartmentFeedback(@PathVariable Long id) {
         return ResponseEntity.ok(apartmentsService.getFeedbackById(id));
     }
 

@@ -134,8 +134,8 @@ public class UserController {
     }
 
     @GetMapping("/agents/feedback/{agentId}")
-    public ResponseEntity<List<String>> getFeedbackOnAgentById(@PathVariable Long agentId) {
-        List<String> feedbacks = feedBackService.getFeedbackOnAgentById(agentId);
+    public ResponseEntity<List<AgentsFeedbackData>> getFeedbackOnAgentById(@PathVariable Long agentId) {
+        List<AgentsFeedbackData> feedbacks = feedBackService.getFeedbackOnAgentById(agentId);
         return ResponseEntity.ok(feedbacks);
     }
 
