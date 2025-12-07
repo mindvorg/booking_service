@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite';
-import { useContext, useState, type ChangeEvent } from 'react';
+import { useContext, useState, type ChangeEvent, useEffect } from 'react';
 import "./LoginForm.scss";
 import { Context } from '../../app/main';
 import type { IRegistration, PhotoItem } from '../../shared/types/types';
 import { uploadPhotos } from '../../pages/createApartment/api';
+import { redirect } from 'react-router';
 
 type FormMode = 'LOGIN' | 'REGISTER';
 
@@ -39,6 +40,11 @@ function LoginForm() {
 	const [role, setRole] = useState<'USER' | 'AGENT'>('USER');
 	const [companyName, setCompanyName] = useState('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [registrationStatus, setRegistrationStatus] = useState<{
+		type: 'success' | 'error' | null;
+		message: string;
+	}>({ type: null, message: '' });
 
 	const formatSize = (size: number) => {
 		if (size < 1024) return `${size} B`;
@@ -46,37 +52,158 @@ function LoginForm() {
 		return `${(size / (1024 * 1024)).toFixed(2)} MB`;
 	};
 
-
 	const { store } = useContext(Context);
 
 	const handleRegister = async () => {
-
-		const newPhotos = photos.filter(p => !p.isExisting && p.file);
-		let finalPhotoUrls: string[] = [];
-		if (newPhotos.length) {
-			const uploadedUrls = await uploadPhotos(newPhotos); // массив URL
-			finalPhotoUrls = [...photos.map(p => p.url), ...uploadedUrls];
-		} else {
-			finalPhotoUrls = photos.map(p => p.url);
+		// Валидация обязательных полей
+		if (!email || !password || !fullName) {
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Пожалуйста, заполните все обязательные поля'
+			});
+			return;
 		}
 
-		const registrationData = {
-			email,
-			password,
-			name: fullName,
-			role,
-			...(role === 'AGENT' && companyName && { companyName }),
-			...(finalPhotoUrls[0] && { avatar: finalPhotoUrls[0] })
-		} as IRegistration;
+		if (role === 'AGENT' && !companyName) {
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Для агента необходимо указать название компании'
+			});
+			return;
+		}
 
-		store.registration(registrationData);
+		setIsLoading(true);
+		setRegistrationStatus({ type: null, message: '' });
+
+		try {
+			const newPhotos = photos.filter(p => !p.isExisting && p.file);
+			let finalPhotoUrls: string[] = [];
+
+			if (newPhotos.length) {
+				const uploadedUrls = await uploadPhotos(newPhotos);
+				finalPhotoUrls = [...photos.map(p => p.url), ...uploadedUrls];
+			} else {
+				finalPhotoUrls = photos.map(p => p.url);
+			}
+
+			const registrationData = {
+				email,
+				password,
+				name: fullName,
+				role,
+				...(role === 'AGENT' && companyName && { companyName }),
+				...(finalPhotoUrls[0] && { avatar: finalPhotoUrls[0] })
+			} as IRegistration;
+
+			const res = await store.registration(registrationData);
+
+			if (res && res === 200) {
+				// Успешная регистрация
+				setRegistrationStatus({
+					type: 'success',
+					message: 'Регистрация прошла успешно! Теперь вы можете войти в аккаунт.'
+				});
+
+				// Очистка формы
+				setEmail('');
+				setPassword('');
+				setFullName('');
+				setCompanyName('');
+				setPhotos([]);
+
+				// Автоматическое переключение на форму входа через 2 секунды
+				setTimeout(() => {
+					setFormMode('LOGIN');
+					setRegistrationStatus({ type: null, message: '' });
+				}, 2000);
+
+			} else if (res === 409) {
+				// Пользователь уже существует
+				setRegistrationStatus({
+					type: 'error',
+					message: 'Пользователь с таким email уже существует'
+				});
+			} else if (res === 400) {
+				// Неверные данные
+				setRegistrationStatus({
+					type: 'error',
+					message: 'Проверьте правильность введенных данных'
+				});
+			} else {
+				// Общая ошибка
+				setRegistrationStatus({
+					type: 'error',
+					message: 'Произошла ошибка при регистрации. Пожалуйста, попробуйте позже или обратитесь в службу поддержки'
+				});
+			}
+		} catch (error) {
+			console.error('Registration error:', error);
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Произошла ошибка при регистрации. Пожалуйста, попробуйте позже'
+			});
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
-	const handleLogin = () => {
-		store.login(email, password);
+	const handleLogin = async () => {
+		if (!email || !password) {
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Пожалуйста, введите email и пароль'
+			});
+			return;
+		}
+
+		setIsLoading(true);
+		setRegistrationStatus({ type: null, message: '' });
+
+		try {
+			const res = await store.login(email, password);
+
+			if (res && res === 200) {
+				// Очистка формы
+				setEmail('');
+				setPassword('');
+
+				redirect('/profile');
+
+			} else {
+				setRegistrationStatus({
+					type: 'error',
+					message: 'Неверный email или пароль'
+				});
+			}
+
+		} catch (error) {
+			console.error('Login error:', error);
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Неверный email или пароль'
+			});
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
-	// --- Работа с фото ---
+	// Очистка Object URL при размонтировании
+	useEffect(() => {
+		return () => {
+			photos.forEach(photo => {
+				if (photo.url && photo.url.startsWith('blob:')) {
+					URL.revokeObjectURL(photo.url);
+				}
+			});
+		};
+	}, [photos]);
+
+	// Сброс статуса при переключении режима
+	useEffect(() => {
+		setRegistrationStatus({ type: null, message: '' });
+	}, [formMode]);
+
+	// Работа с фото
 	const handleAddPhotos = (e: ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (!files) return;
@@ -110,16 +237,29 @@ function LoginForm() {
 				<button
 					className={`mode-btn ${formMode === 'LOGIN' ? 'active' : ''}`}
 					onClick={() => setFormMode('LOGIN')}
+					disabled={isLoading}
 				>
 					Вход
 				</button>
 				<button
 					className={`mode-btn ${formMode === 'REGISTER' ? 'active' : ''}`}
 					onClick={() => setFormMode('REGISTER')}
+					disabled={isLoading}
 				>
 					Регистрация
 				</button>
 			</div>
+
+			{registrationStatus.type && (
+				<div className={`status-message ${registrationStatus.type}`}>
+					{registrationStatus.message}
+					{registrationStatus.type === 'success' && formMode === 'REGISTER' && (
+						<div className="success-hint">
+							Автоматический переход на форму входа...
+						</div>
+					)}
+				</div>
+			)}
 
 			<div className="form">
 				<input
@@ -128,6 +268,7 @@ function LoginForm() {
 					value={email}
 					onChange={e => setEmail(e.target.value)}
 					className='inputForm'
+					disabled={isLoading}
 				/>
 				<input
 					type="password"
@@ -135,16 +276,18 @@ function LoginForm() {
 					value={password}
 					onChange={e => setPassword(e.target.value)}
 					className='inputForm'
+					disabled={isLoading}
 				/>
 
 				{formMode === 'REGISTER' && (
 					<>
 						<input
 							type="text"
-							placeholder='ФИО'
+							placeholder='ФИО *'
 							value={fullName}
 							onChange={e => setFullName(e.target.value)}
 							className='inputForm'
+							disabled={isLoading}
 						/>
 
 						<div className="role-selector">
@@ -157,6 +300,7 @@ function LoginForm() {
 										value="USER"
 										checked={role === 'USER'}
 										onChange={() => setRole('USER')}
+										disabled={isLoading}
 									/>
 									<span>Пользователь</span>
 								</label>
@@ -167,6 +311,7 @@ function LoginForm() {
 										value="AGENT"
 										checked={role === 'AGENT'}
 										onChange={() => setRole('AGENT')}
+										disabled={isLoading}
 									/>
 									<span>Агент</span>
 								</label>
@@ -177,10 +322,11 @@ function LoginForm() {
 							<>
 								<input
 									type="text"
-									placeholder='Название компании'
+									placeholder='Название компании *'
 									value={companyName}
 									onChange={e => setCompanyName(e.target.value)}
 									className='inputForm'
+									disabled={isLoading}
 								/>
 
 								<div className="avatar-upload">
@@ -196,14 +342,27 @@ function LoginForm() {
 														<div className="avatar-name" title={p.name}>{p.name}</div>
 														<div className="avatar-size">{p.sizeText}</div>
 													</div>
-													<button className="btn remove" onClick={() => removePhoto(i)} aria-label={`Удалить ${p.name}`}>✕</button>
+													<button
+														className="btn remove"
+														onClick={() => removePhoto(i)}
+														aria-label={`Удалить ${p.name}`}
+														disabled={isLoading}
+													>
+														✕
+													</button>
 												</div>
 											))}
 										</div>
 										<div className="avatar-actions">
-											<label className="btn add-avatar">
+											<label className={`btn add-avatar ${isLoading ? 'disabled' : ''}`}>
 												Добавить фотографию
-												<input type="file" multiple accept="image/*" onChange={handleAddPhotos} />
+												<input
+													type="file"
+													multiple
+													accept="image/*"
+													onChange={handleAddPhotos}
+													disabled={isLoading || photos.length >= MAX_FILES}
+												/>
 											</label>
 										</div>
 									</div>
@@ -217,15 +376,17 @@ function LoginForm() {
 					<button
 						onClick={handleLogin}
 						className='btnForm primary'
+						disabled={isLoading}
 					>
-						Войти
+						{isLoading ? 'Вход...' : 'Войти'}
 					</button>
 				) : (
 					<button
 						onClick={handleRegister}
 						className='btnForm primary'
+						disabled={isLoading}
 					>
-						Зарегистрироваться
+						{isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
 					</button>
 				)}
 
@@ -237,6 +398,7 @@ function LoginForm() {
 								type="button"
 								className="switch-link"
 								onClick={() => setFormMode('REGISTER')}
+								disabled={isLoading}
 							>
 								Зарегистрироваться
 							</button>
@@ -248,6 +410,7 @@ function LoginForm() {
 								type="button"
 								className="switch-link"
 								onClick={() => setFormMode('LOGIN')}
+								disabled={isLoading}
 							>
 								Войти
 							</button>

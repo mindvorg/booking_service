@@ -28,7 +28,7 @@ const Header = () => {
 						</Link>
 						{
 							store.isAuth
-								? <Link className="nav__list-link auth not-hover" to='/profile'><p>Профиль</p></Link>
+								? <Link className="nav__list-link auth not-hover" to='/profile'><p>{store.user.name}</p></Link>
 								: <Link className="nav__list-link auth not-hover" to='/auth'><Login color='#999999' /> <p>Войти</p></Link>
 						}
 						{

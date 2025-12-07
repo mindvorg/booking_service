@@ -11,13 +11,16 @@ export interface Apartment {
 	photos: string[];
 	description: string;
 	district: string;
-	apartType: string;
-	geotag: string;
 };
 
-export interface AuthResponse {
-	accessToken: string;
-	user: IUser;
+export interface LoginResponse {
+	token: string;
+	email: string;
+	name: string;
+	id: string;
+	role: 'USER' | 'AGENT' | 'ADMIN';
+	companyName?: string;
+	avatar?: string;
 }
 
 export interface IUser {
