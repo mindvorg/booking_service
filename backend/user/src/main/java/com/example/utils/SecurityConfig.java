@@ -55,7 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/users/agents/feedback/add").authenticated()
 
                         .requestMatchers("/photo/upload").permitAll()
-                        .requestMatchers(HttpMethod.DELETE,"/photo/delete").authenticated()
+                        .requestMatchers(HttpMethod.POST,"/photo/delete").authenticated()
 
                         // Сохранение квартир - только для авторизованных
                         .requestMatchers("/apartments/saveApart").authenticated()
