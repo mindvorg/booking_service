@@ -175,7 +175,7 @@ public class UserService implements UserDetailsService {
 
 
     @Transactional
-    public void updateUser(UserData userData) {
+    public UserData updateUser(UserData userData) {
         UserData existUser=userRepository.findById(userData.getId()).orElseThrow(
                 ()->new UsernameNotFoundException("Пользователь с ID " + userData.getId() + " не найден")
         );
@@ -188,9 +188,7 @@ public class UserService implements UserDetailsService {
         if(userData.getName() !=null) {
             existUser.setName(userData.getName());
         }
-        userRepository.save(existUser);
-
-
+        return userRepository.save(existUser);
     }
 
     @Transactional

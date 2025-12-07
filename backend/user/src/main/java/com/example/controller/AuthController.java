@@ -61,7 +61,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
-        System.err.println(authHeader);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             tokenBlacklist.blacklistToken(token);

@@ -90,7 +90,7 @@ public class UserController {
                 .email(userDTO.getEmail())
                 .password(userDTO.getPassword())
                 .build();
-        userService.updateUser(userData);
+        userData = userService.updateUser(userData);
         if (userService.isAgent(id)) {
             AgentData agentData = AgentData.builder()
                     .userId(id)
