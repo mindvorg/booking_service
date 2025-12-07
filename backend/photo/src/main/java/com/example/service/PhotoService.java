@@ -41,7 +41,6 @@ public class PhotoService {
                 .build();
     }
 
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public List<String> uploadToS3(List<MultipartFile> files) throws IOException {//переписать только чтоб ссылка возвращалась
 
         List<String> uploadedFiles = new ArrayList<>();
@@ -85,7 +84,7 @@ public class PhotoService {
                 : "jpg";
     }
 
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public List<String> deletePhotosFromS3(List<String> fileNames) {
         List<String> result = new ArrayList<>();
 

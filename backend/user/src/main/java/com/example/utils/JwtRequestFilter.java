@@ -26,10 +26,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final UserService userService;
 
+    private final TokenBlackList tokenBlackList;
+
     @Autowired
-    public JwtRequestFilter(JwtTokenUtil jwtTokenUtil, UserService userService) {
+    public JwtRequestFilter(JwtTokenUtil jwtTokenUtil, UserService userService, TokenBlackList tokenBlackList) {
         this.jwtTokenUtil = jwtTokenUtil;
         this.userService = userService;
+        this.tokenBlackList = tokenBlackList;
     }
 
     @Override
@@ -41,6 +44,13 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
             jwtToken = requestTokenHeader.substring(7);
+
+            if(tokenBlackList.isTokenBlacklisted(jwtToken)){
+                logger.warn("JWT in blackList");
+                filterChain.doFilter(request,response);
+                return;
+            }
+
             try {
                 username = jwtTokenUtil.getUsernameFromToken(jwtToken);
             } catch (Exception e) {
