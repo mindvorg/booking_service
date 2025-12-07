@@ -109,8 +109,14 @@ public class UserController {
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserData>> getAllUsers() {
-        return ResponseEntity.ok(userService.findAllUsers());
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userService.findAllUsers().stream()
+                .map(e -> UserDTO.builder()
+                        .id(e.getId())
+                        .role(e.getRole().name())
+                        .name(e.getName())
+                        .email(e.getEmail())
+                        .build()).toList());
     }
 
     @GetMapping("/agents/{userId}")
@@ -141,9 +147,10 @@ public class UserController {
 
     @PatchMapping("/admin/changeRole")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> changeRole(@RequestBody AdminRequestDTO adminRequestDTO){
+    public ResponseEntity<?> changeRole(@RequestBody AdminRequestDTO adminRequestDTO) {
         return ResponseEntity.ok(userService.changeRole(adminRequestDTO));
     }
+
     @Data
     public static class AdminRequestDTO {
         private Long id;
