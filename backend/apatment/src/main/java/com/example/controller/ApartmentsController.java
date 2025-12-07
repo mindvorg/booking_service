@@ -42,7 +42,7 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartmentsService.updateApart(apart, id));
     }
 
-    @PostMapping("/{id}")
+    @DeleteMapping("/{id}")
 //    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<Boolean> deleteApartment(@PathVariable Long id) {
         apartmentsService.deleteApartById(id);
