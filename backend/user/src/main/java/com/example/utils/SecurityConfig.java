@@ -49,18 +49,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Публичные endpoints (доступны без аутентификации)
                         .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/login/test").permitAll()
                         .requestMatchers("/users/registration").permitAll()
                         .requestMatchers("/users/saveAgent").permitAll()
+                        .requestMatchers("/users/agents").permitAll()
 
                         // Загрузка фото должна быть защищена (только для агентов)
-                        .requestMatchers(HttpMethod.POST, "/photo/**").authenticated()
-
-                        // Удаление фото должно быть защищено
-                        .requestMatchers(HttpMethod.DELETE, "/photo/**").authenticated()
+                        .requestMatchers("/photo/**").authenticated()
 
                         // Сохранение квартир - только для авторизованных
-                        .requestMatchers(HttpMethod.POST, "/apartments/saveApart").authenticated()
+                        .requestMatchers("/apartments/saveApart").authenticated()
 
                         // Просмотр квартир доступен всем
                         .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()

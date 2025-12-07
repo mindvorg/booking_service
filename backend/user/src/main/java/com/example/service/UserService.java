@@ -1,10 +1,12 @@
 package com.example.service;
 
+import com.example.data.UserDTO;
 import com.example.data.agent.AgentData;
 import com.example.data.agent.AgentRepository;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRepository;
 import com.example.data.user.UserRole;
+import com.example.exceptions.UserAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -65,15 +67,15 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserData saveUser(UserData user) {
-        // Шифруем пароль
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new UserAlreadyExistsException("User already exists");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Если роль не указана, устанавливаем USER по умолчанию
         if (user.getRole() == null) {
             user.setRole(UserRole.USER);
         }
-
         return userRepository.save(user);
     }
 
@@ -84,7 +86,7 @@ public class UserService implements UserDetailsService {
     @Transactional
     public AgentData saveAgent(AgentData agentDTO) {
         if (agentRepository.existsByUserId(agentDTO.getUserId())) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("User already exists");
         }
         return agentRepository.save(agentDTO);
     }
@@ -145,7 +147,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public List<AgentInfoDTO> findAllAgents() {
+    public List<AgentData> findAllAgents() {
         List<AgentInfoDTO> agentsInfo = new ArrayList<>();
         List<AgentData> agents = agentRepository.findAll();
 
@@ -154,7 +156,7 @@ public class UserService implements UserDetailsService {
             user.ifPresent(userData -> agentsInfo.add(new AgentInfoDTO(userData, agent)));
         }
 
-        return agentsInfo;
+        return agents;
     }
 
     @Transactional
@@ -169,6 +171,42 @@ public class UserService implements UserDetailsService {
 
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
+    }
+
+
+    @Transactional
+    public UserData updateUser(UserData userData) {
+        UserData existUser=userRepository.findById(userData.getId()).orElseThrow(
+                ()->new UsernameNotFoundException("Пользователь с ID " + userData.getId() + " не найден")
+        );
+        if(userData.getPassword() !=null){
+            existUser.setPassword(passwordEncoder.encode(userData.getPassword()));
+        }
+        if(userData.getEmail() !=null){
+            existUser.setEmail(userData.getEmail());
+        }
+        if(userData.getName() !=null) {
+            existUser.setName(userData.getName());
+        }
+        return userRepository.save(existUser);
+    }
+
+    @Transactional
+    public void updateAgent(AgentData agentData) {
+        AgentData existAgent= agentRepository.findByUserId(agentData.getUserId()).orElseThrow(
+                ()->new UsernameNotFoundException("Agent с ID " + agentData.getUserId() + " не найден")
+        );
+        if(agentData.getAvatar() !=null){
+            existAgent.setAvatar(agentData.getAvatar());
+        }
+        if(agentData.getCompanyName() !=null){
+            existAgent.setCompanyName(agentData.getCompanyName());
+        }
+        agentRepository.save(existAgent);
+    }
+
+    public boolean isAgent(Long id) {
+        return agentRepository.existsByUserId(id);
     }
 
     // DTO для регистрации агента

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ public class PhotoController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<List<String>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
         List<String> list;
         try {
@@ -36,6 +38,7 @@ public class PhotoController {
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<List<String>> deletePhoto(@RequestBody List<String> paths) {
         return ResponseEntity.ok(photoService.deletePhotosFromS3(paths));
     }
