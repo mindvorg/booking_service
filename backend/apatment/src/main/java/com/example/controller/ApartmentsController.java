@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.data.feedback.FeedbackData;
 import com.example.service.PhotoService;
 import com.example.data.ApartmentsData;
 import com.example.service.ApartmentsService;
@@ -70,12 +71,12 @@ public class ApartmentsController {
             @RequestParam(required = false) Integer minHouseDate,
             @RequestParam(required = false) Integer maxHouseDate,
             @RequestParam(required = false) String sort
-            ) {
+    ) {
 
         List<ApartmentsData> apartments = apartmentsService.searchApartments(
                 agentId, status, district, minSquare, maxSquare,
                 minRooms, maxRooms, minFloor, maxFloor, minPrice, maxPrice,
-                minHouseDate, maxHouseDate,sort);
+                minHouseDate, maxHouseDate, sort);
         return ResponseEntity.ok(apartments);
     }
 
@@ -84,5 +85,14 @@ public class ApartmentsController {
         return ResponseEntity.ok(apartmentsService.searchByPrompt(prompt));
     }
 
+    @GetMapping("/feedback/{id}")
+    public ResponseEntity<FeedbackData> getApartmentFeedback(@PathVariable Long id) {
+        return ResponseEntity.ok(apartmentsService.getFeedbackById(id));
+    }
 
+    @PostMapping("/feedback/add")
+    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+    public ResponseEntity<FeedbackData> addApartmentFeedback(@RequestBody FeedbackData feedbackData) {
+        return ResponseEntity.ok(apartmentsService.saveFeedBack(feedbackData));
+    }
 }

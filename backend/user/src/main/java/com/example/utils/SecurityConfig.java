@@ -53,12 +53,13 @@ public class SecurityConfig {
                         .requestMatchers("/users/saveAgent").permitAll()
                         .requestMatchers("/users/agents/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/users/agents/feedback/add").authenticated()
-
+                        .requestMatchers("/users/admin/**").authenticated()
                         .requestMatchers("/photo/upload").permitAll()
                         .requestMatchers(HttpMethod.POST,"/photo/delete").authenticated()
 
                         // Сохранение квартир - только для авторизованных
                         .requestMatchers("/apartments/saveApart").authenticated()
+                        .requestMatchers("/apartments/feedback/add").authenticated()
 
                         // Просмотр квартир доступен всем
                         .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()

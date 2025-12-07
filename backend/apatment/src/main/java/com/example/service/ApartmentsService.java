@@ -3,6 +3,8 @@ package com.example.service;
 import com.example.data.ApartmentsData;
 import com.example.data.ApartmentsRepository;
 import com.example.data.agent.AgentData;
+import com.example.data.feedback.FeedbackData;
+import com.example.data.feedback.FeedbackRepository;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRole;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +26,13 @@ public class ApartmentsService {
 
     private final ApartmentsRepository apartmentsRepository;
     private final UserService userService;
+    private final FeedbackRepository feedbackRepository;
 
     @Autowired
-    public ApartmentsService(ApartmentsRepository apartmentsRepository, UserService userService) {
+    public ApartmentsService(ApartmentsRepository apartmentsRepository, UserService userService, FeedbackRepository feedbackRepository) {
         this.apartmentsRepository = apartmentsRepository;
         this.userService = userService;
+        this.feedbackRepository = feedbackRepository;
     }
 
     @Transactional
@@ -173,4 +177,11 @@ public class ApartmentsService {
         return apartmentsRepository.save(existApart.get());
     }
 
+    public FeedbackData getFeedbackById(Long id) {
+        return feedbackRepository.getByApartId(id);
+    }
+
+    public FeedbackData saveFeedBack(FeedbackData feedbackData) {
+        return feedbackRepository.save(feedbackData);
+    }
 }
