@@ -5,13 +5,13 @@ import com.example.data.agent.AgentData;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRole;
 import com.example.exceptions.UserAlreadyExistsException;
+import com.example.service.FeedbackService;
 import com.example.service.UserService;
 import com.example.utils.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +27,13 @@ public class UserController {
 
     private final UserService userService;
     private final JwtTokenUtil jwtTokenUtil;
+    private final FeedbackService feedBackService;
 
     @Autowired
-    public UserController(UserService userService, JwtTokenUtil jwtTokenUtil) {
+    public UserController(UserService userService, JwtTokenUtil jwtTokenUtil, FeedbackService feedBackService) {
         this.userService = userService;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.feedBackService = feedBackService;
     }
 
     /**
@@ -125,7 +127,13 @@ public class UserController {
 
     @GetMapping("/agents/feedback/{userId}")
     public ResponseEntity<?> getFeedbackById(@PathVariable Long userId) {
+        String feedback = feedBackService.getFeedBackOnAgentById(userId);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/agents/feedback/add")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> addFeedbackOnAgent(@RequestBody String feedback){
+        return null;
     }
 
 }

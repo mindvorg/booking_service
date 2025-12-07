@@ -25,7 +25,7 @@ public class PhotoController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<List<String>> uploadPhoto(@RequestParam("files") List<MultipartFile> files) {
         List<String> list;
         try {
