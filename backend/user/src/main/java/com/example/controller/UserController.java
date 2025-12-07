@@ -102,23 +102,12 @@ public class UserController {
         final String token = jwtTokenUtil.generateToken(userDetails);
         return ResponseEntity.ok(token);
     }
+
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserData>> getAllUsers(){
+    public ResponseEntity<List<UserData>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
-
-//    @GetMapping("/profile/{id}")
-//    @PreAuthorize("hasRole('USER')")
-//    public ResponseEntity<UserData> getUserProfile(@PathVariable Long id) {
-//        return ResponseEntity.ok(userService.getUser(id));
-//    }
-
-//    @GetMapping("/admin")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public ResponseEntity<String> getAdminData() {
-//        return ResponseEntity.ok("This is admin data");
-//    }
 
     @GetMapping("/agents/{userId}")
     public ResponseEntity<UserService.AgentInfoDTO> getAgentInfo(@PathVariable Long userId) {
@@ -133,4 +122,10 @@ public class UserController {
     public ResponseEntity<List<AgentData>> getAllAgents() {
         return ResponseEntity.ok(userService.findAllAgents());
     }
+
+    @GetMapping("/agents/feedback/{userId}")
+    public ResponseEntity<?> getFeedbackById(@PathVariable Long userId) {
+        return ResponseEntity.ok().build();
+    }
+
 }

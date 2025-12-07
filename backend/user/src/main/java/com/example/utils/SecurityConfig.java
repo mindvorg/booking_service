@@ -37,9 +37,9 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOrigins(Arrays.asList(
                             "http://localhost:3000",
-                            "http://localhost:5173"  // ← ДОБАВЬТЕ ЭТОТ АДРЕС
+                            "http://localhost:5173"
                     ));
-                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                     config.setAllowCredentials(true);
                     config.setAllowedHeaders(Collections.singletonList("*"));
                     config.setExposedHeaders(Collections.singletonList("Authorization"));
@@ -51,7 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/users/registration").permitAll()
                         .requestMatchers("/users/saveAgent").permitAll()
-                        .requestMatchers("/users/agents/all").permitAll()
+                        .requestMatchers("/users/agents/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/users/agents/feedback/add").authenticated()
 
                         // Загрузка фото должна быть защищена (только для агентов)
                         .requestMatchers("/photo/**").authenticated()
