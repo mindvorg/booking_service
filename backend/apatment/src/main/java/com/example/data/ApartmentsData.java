@@ -36,8 +36,4 @@ public class ApartmentsData {
     private String description;
 
     private String district;
-
-    private String apartType;
-
-    private String geotag;
 }

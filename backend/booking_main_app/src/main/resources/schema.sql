@@ -11,8 +11,6 @@ CREATE TABLE IF NOT EXISTS "apartment" (
     "photo" VARCHAR(255) NOT NULL,
     "description" VARCHAR(255) NOT NULL,
     "district" VARCHAR(255) NOT NULL,
-    "apart_type" VARCHAR(255) NOT NULL,
-    "geotag" VARCHAR(255),
     PRIMARY KEY("id")
     );
 CREATE TABLE IF NOT EXISTS "feedbacks" (

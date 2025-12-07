@@ -18,10 +18,10 @@ SELECT * FROM (VALUES (4, 'Агентство недвижимости "Севе
 WHERE NOT EXISTS (SELECT 1 FROM "agents" LIMIT 1);
 
 -- Проверяем и вставляем квартиры
-INSERT INTO "apartment" ("status", "address", "house_date", "floor", "square", "room_number", "price", "agent_id", "photo", "description", "district", "apart_type", "geotag")
+INSERT INTO "apartment" ("status", "address", "house_date", "floor", "square", "room_number", "price", "agent_id", "photo", "description", "district")
 SELECT * FROM (VALUES
-                   (1, 'Невский проспект, 45', 2020, 5, 75, 2, 18500000, 1, 'photo1.jpg', 'Просторная квартира в историческом центре с видом на канал', 'Центральный', 'квартира', '59.9350,30.3256'),
-                   (0, 'ул. Большая Морская, 15', 2019, 3, 65, 1, 12500000, 1, 'photo2.jpg', 'Уютная квартира с камином в центре города', 'Адмиралтейский', 'квартира', '59.9343,30.3061'),
-                   (1, 'Васильевский остров, 6-я линия, 23', 2021, 7, 85, 3, 21500000, 2, 'photo3.jpg', 'Светлая трехкомнатная квартира с ремонтом', 'Василеостровский', 'квартира', '59.9419,30.2821')
-              ) AS t(status, address, house_date, floor, square, room_number, price, agent_id, photo, description, district, apart_type, geotag)
+                   (1, 'Невский проспект, 45', 2020, 5, 75, 2, 18500000, 1, 'photo1.jpg', 'Просторная квартира в историческом центре с видом на канал', 'Центральный' ),
+                   (0, 'ул. Большая Морская, 15', 2019, 3, 65, 1, 12500000, 1, 'photo2.jpg', 'Уютная квартира с камином в центре города', 'Адмиралтейский' ),
+                   (1, 'Васильевский остров, 6-я линия, 23', 2021, 7, 85, 3, 21500000, 2, 'photo3.jpg', 'Светлая трехкомнатная квартира с ремонтом', 'Василеостровский')
+              ) AS t(status, address, house_date, floor, square, room_number, price, agent_id, photo, description, district)
 WHERE NOT EXISTS (SELECT 1 FROM "apartment" LIMIT 1);

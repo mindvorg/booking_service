@@ -42,11 +42,6 @@ public interface ApartmentsRepository extends JpaRepository<ApartmentsData, Long
     // Поиск по статусу
     List<ApartmentsData> getAllByStatus(Short status);
 
-    // Поиск по типу квартиры
-    List<ApartmentsData> getAllByApartType(String apartType);
-
-    List<ApartmentsData> findByApartTypeIn(List<String> apartTypes);
-
     // Поиск по агенту
     List<ApartmentsData> getAllByAgentId(Long agentId);
 

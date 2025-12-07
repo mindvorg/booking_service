@@ -157,12 +157,6 @@ public class ApartmentsService {
         if (dto.getDistrict() != null) {
             existApart.get().setDistrict(dto.getDistrict());
         }
-        if (dto.getApartType() != null) {
-            existApart.get().setApartType(dto.getApartType());
-        }
-        if (dto.getGeotag() != null) {
-            existApart.get().setGeotag(dto.getGeotag());
-        }
         return apartmentsRepository.save(existApart.get());
     }
 
