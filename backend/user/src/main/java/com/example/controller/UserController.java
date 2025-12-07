@@ -36,7 +36,6 @@ public class UserController {
 
     /**
      * При регистрации выбирается роль и в зависимости от выбранной роли не обязательно есть еще компания и аватарка.
-     *
      */
     @PostMapping("/registration")
     public ResponseEntity<Map<String, Object>> regUser(@RequestBody UserDTO userDTO) {//сделать 409, если уже есть пользователь
@@ -103,20 +102,25 @@ public class UserController {
         final String token = jwtTokenUtil.generateToken(userDetails);
         return ResponseEntity.ok(token);
     }
-
-    @GetMapping("/profile/{id}")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<UserData> getUserProfile(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUser(id));
-    }
-
-    @GetMapping("/admin")
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> getAdminData() {
-        return ResponseEntity.ok("This is admin data");
+    public ResponseEntity<List<UserData>> getAllUsers(){
+        return ResponseEntity.ok(userService.findAllUsers());
     }
 
-    @GetMapping("/agent/{userId}")
+//    @GetMapping("/profile/{id}")
+//    @PreAuthorize("hasRole('USER')")
+//    public ResponseEntity<UserData> getUserProfile(@PathVariable Long id) {
+//        return ResponseEntity.ok(userService.getUser(id));
+//    }
+
+//    @GetMapping("/admin")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<String> getAdminData() {
+//        return ResponseEntity.ok("This is admin data");
+//    }
+
+    @GetMapping("/agents/{userId}")
     public ResponseEntity<UserService.AgentInfoDTO> getAgentInfo(@PathVariable Long userId) {
         UserService.AgentInfoDTO agentInfo = userService.getAgentInfo(userId);
         if (agentInfo != null) {
@@ -125,7 +129,7 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/agents")
+    @GetMapping("/agents/all")
     public ResponseEntity<List<AgentData>> getAllAgents() {
         return ResponseEntity.ok(userService.findAllAgents());
     }
