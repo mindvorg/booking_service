@@ -4,8 +4,11 @@ export async function uploadPhotos(photos: PhotoItem[]): Promise<string[]> {
 	const form = new FormData();
 	photos.forEach((p) => p.file && form.append("files", p.file));
 
-	const res = await fetch("/api/upload/photos", {
+	const res = await fetch("http://localhost:8080/foto/upload", {
 		method: "POST",
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+		},
 		body: form,
 	});
 
@@ -15,11 +18,13 @@ export async function uploadPhotos(photos: PhotoItem[]): Promise<string[]> {
 	return data.urls as string[];
 }
 
-export async function deletePhoto(photo: string): Promise<string[]> {
+export async function deletePhoto(photos: PhotoItem[]): Promise<string[]> {
+	const form = new FormData();
+	photos.forEach((p) => p.file && form.append("files", p.file));
 
-	const res = await fetch("/api/delete/photo", {
+	const res = await fetch("/foto/delete", {
 		method: "POST",
-		body: photo,
+		body: form,
 	});
 
 	if (!res.ok) throw new Error("Не удалось загрузить фотографии");

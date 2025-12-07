@@ -103,7 +103,7 @@ export default class Store {
 	async edit(updates: Record<string, any>, id: number) {
 		console.log(updates);
 		try {
-			await fetch(`http://localhost:8080/users/${id}`, {
+			const response = await fetch(`http://localhost:8080/users/${id}`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',
@@ -111,6 +111,12 @@ export default class Store {
 				},
 				body: JSON.stringify(updates)
 			});
+
+			const token = await response.text();
+
+			this.user = { ...this.user, ...updates };
+			localStorage.setItem('token', token);
+			localStorage.setItem('user', JSON.stringify(this.user));
 		} catch (e: any) {
 			console.error(e.response?.data?.message);
 		}
