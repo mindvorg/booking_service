@@ -29,7 +29,10 @@ export const Navigation = () => {
 				<Routes>
 					<Route path='/' element={<Main />} />
 					<Route path='/apartments' element={<Apartments />} />
+					<Route path='/apartments/search' element={<Apartments />} />
 					<Route path='/apartments/:id' element={<Apartment />} />
+					<Route path='/agents' element={<Apartments />} />
+					<Route path='/agents/:id' element={<Apartment />} />
 					<Route path='/auth' element={<Auth />} />
 					<Route path='/admin' element={
 						<ProtectedRoute requiredRole='ADMIN'>
@@ -41,8 +44,16 @@ export const Navigation = () => {
 					}
 					/>
 
-					<Route path='/create-apartment' element={<CreateApartment />} />
-					<Route path='/edit-apartment/:id' element={<CreateApartment />} />
+					<Route path='/create-apartment' element={
+						<ProtectedRoute requiredRole='AGENT'>
+							<CreateApartment />
+						</ProtectedRoute>
+					} />
+					<Route path='/edit-apartment/:id' element={
+						<ProtectedRoute requiredRole='AGENT'>
+							<CreateApartment />
+						</ProtectedRoute>
+					} />
 
 					<Route
 						path="*"

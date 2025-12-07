@@ -6,6 +6,21 @@ import LoginForm from '../../features/loginForm/LoginForm';
 import type { IUser } from '../../shared/types/types';
 import { deletePhoto, uploadPhotos } from '../../pages/createApartment/api';
 
+// Функция для извлечения имени файла из URL
+function extractFileNameFromUrl(url: string): string {
+	if (!url) return '';
+
+	// Ищем "/photos/" в URL
+	const photosIndex = url.lastIndexOf('/photos/');
+	if (photosIndex !== -1) {
+		return url.substring(photosIndex + 8); // 8 = длина "/photos/"
+	}
+
+	// Если "/photos/" не найден, берем имя файла после последнего "/"
+	const lastSlashIndex = url.lastIndexOf('/');
+	return lastSlashIndex !== -1 ? url.substring(lastSlashIndex + 1) : url;
+}
+
 function Auth() {
 	const { store } = useContext(Context);
 	const [isEditing, setIsEditing] = useState(false);
@@ -16,6 +31,9 @@ function Auth() {
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [avatarPreview, setAvatarPreview] = useState<string>('');
 	const [isSaving, setIsSaving] = useState(false);
+
+	// Сохраняем оригинальный аватар при входе в режим редактирования
+	const [originalAvatar, setOriginalAvatar] = useState<string>('');
 
 	// Инициализируем форму данными пользователя
 	useEffect(() => {
@@ -29,6 +47,13 @@ function Auth() {
 			}
 		}
 	}, [store.user]);
+
+	// Сохраняем оригинальный аватар при входе в режим редактирования
+	useEffect(() => {
+		if (isEditing && store.user?.avatar) {
+			setOriginalAvatar(store.user.avatar);
+		}
+	}, [isEditing, store.user]);
 
 	if (!store.isAuth) {
 		return <LoginForm />;
@@ -83,44 +108,61 @@ function Auth() {
 		}
 
 		// Если нет изменений в текстовых полях и нет нового аватара
-		if (Object.keys(updates).length === 0 && !avatarFile) {
+		if (Object.keys(updates).length === 0 && !avatarFile && avatarPreview === originalAvatar) {
 			setIsEditing(false);
 			return;
 		}
 
 		setIsSaving(true);
 		try {
-			// Сначала загружаем аватар, если есть
-			if (avatarFile && store.user.role === 'AGENT') {
-				console.log(store.user?.avatar);
-				console.log(avatarFile);
-				if (store.user?.avatar) {
-					await deletePhoto([store.user?.avatar]);
-					const res = await uploadPhotos([avatarFile]);
-					updates.avatar = res[0];
-				} else {
+			// Логика для агентов с аватаром
+			if (store.user.role === 'AGENT') {
+				// Случай 1: Был аватар, удалили его и не добавили новый
+				if (originalAvatar && !avatarPreview && !avatarFile) {
+					// Удаляем старый аватар
+					await deletePhoto([originalAvatar]);
+					updates.avatar = null; // Устанавливаем аватар в null
+				}
+
+				// Случай 2: Добавили новый файл (заменяем старый)
+				else if (avatarFile) {
+					// Если был старый аватар - удаляем его
+					if (originalAvatar) {
+						await deletePhoto([originalAvatar]);
+					}
+
+					// Загружаем новый аватар
 					const res = await uploadPhotos([avatarFile]);
 					updates.avatar = res[0];
 				}
+
+				// Случай 3: Не было аватара, добавили новый
+				else if (!originalAvatar && avatarPreview && avatarFile) {
+					const res = await uploadPhotos([avatarFile]);
+					updates.avatar = res[0];
+				}
+
+				// Случай 4: Был аватар, оставили его как есть (avatarPreview есть, но avatarFile нет)
+				// Ничего не делаем с аватаром
 			}
 
-			// Если есть изменения текстовых полей, отправляем их
+			// Если есть изменения текстовых полей или аватара, отправляем их
 			if (Object.keys(updates).length > 0) {
 				await store.edit(updates, store.user.id);
 			}
 
 			setIsEditing(false);
+			setOriginalAvatar(''); // Сбрасываем оригинальный аватар
+
 		} catch (error) {
 			console.error('Ошибка при сохранении:', error);
+			// В случае ошибки возвращаем оригинальный аватар в превью
+			if (originalAvatar) {
+				setAvatarPreview(originalAvatar);
+			}
 		} finally {
 			setIsSaving(false);
 		}
-	};
-
-	// Функция загрузки аватара (нужно будет реализовать в api)
-	const uploadAvatar = async (file: File, userId: number): Promise<string> => {
-		// Временная заглушка - реализуйте загрузку на сервер
-		return URL.createObjectURL(file);
 	};
 
 	// Обработчик отмены редактирования
@@ -130,11 +172,16 @@ function Auth() {
 				name: store.user.name || '',
 				companyName: store.user.companyName || '',
 			});
+			// Восстанавливаем оригинальный аватар
 			setAvatarPreview(store.user.avatar || '');
 			setAvatarFile(null);
 		}
 		setIsEditing(false);
+		setOriginalAvatar(''); // Сбрасываем оригинальный аватар
 	};
+
+	// Определяем, был ли удален аватар
+	const isAvatarRemoved = originalAvatar && !avatarPreview && !avatarFile;
 
 	const user = store.user as IUser;
 
@@ -196,10 +243,20 @@ function Auth() {
 													<button
 														onClick={handleRemoveAvatar}
 														className="avatar-remove-btn"
+														type="button"
 													>
 														Удалить
 													</button>
 												)}
+
+												{isAvatarRemoved && (
+													<div className="avatar-warning">
+														<span style={{ color: '#ff6b6b', fontSize: '13px' }}>
+															⚠️ Аватар будет удален после сохранения
+														</span>
+													</div>
+												)}
+
 												<p className="avatar-hint">
 													Рекомендуемый размер: 500×500 px
 												</p>
@@ -328,6 +385,7 @@ function Auth() {
 										onClick={handleCancel}
 										disabled={isSaving}
 										className="cancel-btn"
+										type="button"
 									>
 										Отменить
 									</button>

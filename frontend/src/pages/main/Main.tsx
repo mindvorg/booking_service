@@ -24,7 +24,7 @@ export const Main = () => {
 					</button>
 				</div>
 				<div className="hero-image">
-					<div className="placeholder-image">Изображение жилого комплекса</div>
+					<img src='public/img/title-photo.jpg' className="placeholder-image" alt='Изображение жилого комплекса' />
 				</div>
 			</section>
 

@@ -9,9 +9,8 @@ const Header = () => {
 
 	const { store } = useContext(Context);
 
-	const getLatestApart = () => {
-		const years = new Date().getFullYear();
-		return `/apartments?houseDate=${years - 5}-${years}`;
+	const handleLogout = async () => {
+		await store.logout();
 	};
 
 	return (
@@ -23,9 +22,18 @@ const Header = () => {
 							<Map color='#999999' />
 							<p>Санкт-Петербург</p>
 						</div>
-						<Link className="nav__list-link not-hover" to='/create-apartment'>
-							<button className="btn">Новое обновление</button>
-						</Link>
+						{
+							store.user.role == "AGENT"
+								? <Link className="nav__list-link not-hover" to='/create-apartment'>
+									<button className="header-up-container-btn">+ Новое обновление</button>
+								</Link>
+								: null
+						}
+						{
+							store.isAuth
+								? <button className="header-up-container-btn-logout" onClick={() => handleLogout()}>Выйти</button>
+								: null
+						}
 						{
 							store.isAuth
 								? <Link className="nav__list-link auth not-hover" to='/profile'><p>{store.user.name}</p></Link>
@@ -48,10 +56,10 @@ const Header = () => {
 								<p>ООО "Бнал"</p>
 							</Link>
 						</li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments'>Покупка</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments?status=1'>Аренда</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to={`${getLatestApart()}`}>Новостройки</Link></li>
-						<li className="nav__list-item"><Link className="nav__list-link" to='/agents'>Риелторы</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments/search?status=0'>Покупка</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments/search?status=1'>Аренда</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to={`/apartments/search?minHouseDate=${new Date().getFullYear() - 5}&maxHouseDate=${new Date().getFullYear()}`}>Новостройки</Link></li>
+						<li className="nav__list-item"><Link className="nav__list-link" to='/agents'>Агенты</Link></li>
 					</ul>
 				</div>
 			</div>

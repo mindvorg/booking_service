@@ -7,11 +7,10 @@ export const Footer = () => {
 			<div className="container">
 				<div className="footer__content">
 					<ul className="footer__left-list">
-						<li className="footer__list-item"><Link className="footer__link" to='/'>Покупка</Link></li>
-						<li className="footer__list-item"><Link className="footer__link" to='/news'>Аренда</Link></li>
-						<li className="footer__list-item"><Link className="footer__link" to='/calendar'>Новостройки</Link></li>
-						<li className="footer__list-item"><Link className="footer__link" to='/studboard'>Риелторы</Link></li>
-						<li className="footer__list-item"><Link className="footer__link" to='/contacts'>Журнал</Link></li>
+						<li className="footer__list-item"><Link className="footer__link" to='/apartments/search?status=0'>Покупка</Link></li>
+						<li className="footer__list-item"><Link className="footer__link" to='/apartments/search?status=1'>Аренда</Link></li>
+						<li className="footer__list-item"><Link className="footer__link" to={`/apartments/search?minHouseDate=${new Date().getFullYear() - 5}&maxHouseDate=${new Date().getFullYear()}`}>Новостройки</Link></li>
+						<li className="footer__list-item"><Link className="footer__link" to='/agents'>Агенты</Link></li>
 					</ul>
 					<ul className="footer__mid-list">
 						<li className="footer__list-item text">

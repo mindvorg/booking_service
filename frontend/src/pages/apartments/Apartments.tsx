@@ -1,62 +1,95 @@
 import './Apartments.scss';
-// Main.tsx
 import { useState, useEffect } from "react";
 import { ApartmentsList, SearchField } from "../../widget/";
-import { mockApartments } from '../../shared/mock/mock';
 import type { Apartment } from '../../shared/types/types';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const Apartments = () => {
 	const [apartments, setApartments] = useState<Apartment[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
-	const [searchParams, setSearchParams] = useState<string>("");
+	const navigate = useNavigate();
+	const location = useLocation();
 
-	// Загрузка данных при монтировании и изменении параметров поиска
-	useEffect(() => {
-		fetchApartments();
-	}, [searchParams]);
-
-	const fetchApartments = async () => {
+	// Функция для загрузки данных по текущему URL
+	const fetchApartmentsFromUrl = async (searchParams: URLSearchParams) => {
 		setLoading(true);
 		try {
-			// Имитация задержки API
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			// Формируем URL для запроса
+			const queryString = searchParams.toString();
+			const apiUrl = queryString
+				? `http://localhost:8080/apartments/search?${queryString}`
+				: 'http://localhost:8080/apartments/all';
 
-			// Mock данные
-			const mock = mockApartments;
+			console.log('Fetching from:', apiUrl);
 
-			// Фильтрация по поисковому запросу
-			const filteredApartments = searchParams
-				? mock.filter(apartment =>
-					apartment.description.toLowerCase().includes(searchParams.toLowerCase())
-				)
-				: mock;
+			const response = await fetch(apiUrl);
 
-			setApartments(filteredApartments);
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			setApartments(data);
 		} catch (error) {
 			console.error("Ошибка загрузки данных:", error);
+			setApartments([]);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const handleSearch = (searchTerm: string) => {
-		setSearchParams(searchTerm);
+	// При монтировании загружаем данные на основе текущего URL
+	useEffect(() => {
+		const searchParams = new URLSearchParams(location.search);
+		fetchApartmentsFromUrl(searchParams);
+	}, [location.search]);
+
+	// Функция для получения начальных параметров из URL
+	const getInitialParamsFromUrl = () => {
+		const searchParams = new URLSearchParams(location.search);
+		const initialParams: Record<string, string> = {};
+
+		// Параметры, которые используются в SearchField
+		const paramNames = [
+			'status', 'district', 'minSquare', 'maxSquare', 'minRooms',
+			'maxRooms', 'minFloor', 'maxFloor', 'minPrice', 'maxPrice',
+			'minHouseDate', 'maxHouseDate', 'sort'
+		];
+
+		paramNames.forEach(param => {
+			const value = searchParams.get(param);
+			if (value !== null) {
+				initialParams[param] = value;
+			}
+		});
+
+		return initialParams;
 	};
 
-	const handleReset = () => {
-		setSearchParams("");
+	const handleSearch = (searchParams: URLSearchParams) => {
+		// Обновляем URL браузера
+		const queryString = searchParams.toString();
+		const newPath = queryString ? `/apartments?${queryString}` : '/apartments/all';
+
+		// Используем replace вместо push, чтобы не копить историю поиска
+		navigate(newPath, { replace: true });
 	};
 
 	return (
 		<div className="main">
 			<SearchField
 				onSearch={handleSearch}
-				onReset={handleReset}
-				placeholder="Город, ЖК, адрес, район..."
-				className="main-search"
+				initialParams={getInitialParamsFromUrl()}
 			/>
 
-			<ApartmentsList apartments={apartments} loading={loading} />
+			{apartments.length === 0 && !loading ? (
+				<div className="no-results">
+					<h3>Ничего не найдено</h3>
+					<p>Попробуйте изменить параметры поиска</p>
+				</div>
+			) : (
+				<ApartmentsList apartments={apartments} loading={loading} />
+			)}
 		</div>
 	);
 };

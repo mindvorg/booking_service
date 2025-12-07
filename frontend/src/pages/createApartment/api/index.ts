@@ -17,12 +17,20 @@ export async function uploadPhotos(photos: File[]): Promise<string[]> {
 
 export async function deletePhoto(photos: string[]): Promise<void> {
 
+	const regex = /\/photos\/([^\/?#]+)(?:[?#].*)?$/;
+
+	const names = photos.map(url => {
+		const match = url.match(regex);
+		return match ? match[1] : '';
+	}).filter(Boolean);
+
 	const res = await fetch("http://localhost:8080/photo/delete", {
-		method: "DELETE",
+		method: "POST",
 		headers: {
 			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify(photos),
+		body: JSON.stringify(names),
 	});
 
 	if (!res.ok) throw new Error("Не удалось удалить фотографии");

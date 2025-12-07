@@ -35,6 +35,15 @@
 	}
 }
 
+.avatar-warning {
+	margin-top: 8px;
+	padding: 6px 10px;
+	background-color: rgba(255, 107, 107, 0.1);
+	border-radius: 4px;
+	border-left: 3px solid #ff6b6b;
+	font-size: 13px;
+}
+
 /* Основной макет */
 .profile-layout {
 	display: flex;
@@ -268,6 +277,7 @@
 
 /* Кнопки действий */
 .agent-actions {
+	text-align: center;
 	margin-top: 40px;
 	padding-top: 30px;
 	border-top: 1px solid #eee;
