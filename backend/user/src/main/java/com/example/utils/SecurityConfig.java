@@ -55,8 +55,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,"/users/agents/feedback/add").authenticated()
 
                         // Загрузка фото должна быть защищена (только для агентов)
-                        .requestMatchers("/photo/**").authenticated()
-
+//                        .requestMatchers("/photo/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE,"/photo/delete").authenticated()
                         // Сохранение квартир - только для авторизованных
                         .requestMatchers("/apartments/saveApart").authenticated()
 
