@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.controller.UserController;
 import com.example.data.UserDTO;
 import com.example.data.agent.AgentData;
 import com.example.data.agent.AgentRepository;
@@ -17,10 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -207,6 +205,20 @@ public class UserService implements UserDetailsService {
 
     public boolean isAgent(Long id) {
         return agentRepository.existsByUserId(id);
+    }
+
+    public UserData changeRole(UserController.AdminRequestDTO adminRequestDTO) {
+        UserData existData = userRepository.findById(adminRequestDTO.getId()).orElseThrow(() ->
+                new NoSuchElementException("no such user"));
+        if (existData.getRole() == UserRole.AGENT && adminRequestDTO.getRole() == UserRole.USER)
+        {
+            agentRepository.deleteByUserId(existData.getId());
+        }
+        if(existData.getRole()==UserRole.USER && adminRequestDTO.getRole()== UserRole.AGENT) {
+            agentRepository.save(AgentData.builder().userId(existData.getId()).avatar("").companyName("").build());
+        }
+        existData.setRole(adminRequestDTO.getRole());
+        return userRepository.save(existData);
     }
 
     // DTO для регистрации агента

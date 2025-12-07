@@ -1,6 +1,7 @@
 -- Проверяем и вставляем пользователей
 INSERT INTO "users" ("email", "password", "name", "role")
 SELECT * FROM (VALUES
+                   ('admin@admin.com','admin','admin','ADMIN'),
                    ('ivan.petrov@example.com', 'hashed_password_1', 'Иван Петров', 'USER'),
                    ('maria.sidorova@example.com', 'hashed_password_2', 'Мария Сидорова', 'USER'),
                    ('alexei.kozlov@example.com', 'hashed_password_3', 'Алексей Козлов', 'USER'),
@@ -19,8 +20,8 @@ WHERE NOT EXISTS (SELECT 1 FROM "agents" LIMIT 1);
 -- Проверяем и вставляем квартиры
 INSERT INTO "apartment" ("status", "address", "house_date", "floor", "square", "room_number", "price", "agent_id", "photo", "description", "district", "apart_type", "geotag")
 SELECT * FROM (VALUES
-                   ('свободно', 'Невский проспект, 45', 2020, 5, 75, 2, 18500000, 1, 'photo1.jpg', 'Просторная квартира в историческом центре с видом на канал', 'Центральный', 'квартира', '59.9350,30.3256'),
-                   ('бронь', 'ул. Большая Морская, 15', 2019, 3, 65, 1, 12500000, 1, 'photo2.jpg', 'Уютная квартира с камином в центре города', 'Адмиралтейский', 'квартира', '59.9343,30.3061'),
-                   ('свободно', 'Васильевский остров, 6-я линия, 23', 2021, 7, 85, 3, 21500000, 2, 'photo3.jpg', 'Светлая трехкомнатная квартира с ремонтом', 'Василеостровский', 'квартира', '59.9419,30.2821')
+                   (1, 'Невский проспект, 45', 2020, 5, 75, 2, 18500000, 1, 'photo1.jpg', 'Просторная квартира в историческом центре с видом на канал', 'Центральный', 'квартира', '59.9350,30.3256'),
+                   (0, 'ул. Большая Морская, 15', 2019, 3, 65, 1, 12500000, 1, 'photo2.jpg', 'Уютная квартира с камином в центре города', 'Адмиралтейский', 'квартира', '59.9343,30.3061'),
+                   (1, 'Васильевский остров, 6-я линия, 23', 2021, 7, 85, 3, 21500000, 2, 'photo3.jpg', 'Светлая трехкомнатная квартира с ремонтом', 'Василеостровский', 'квартира', '59.9419,30.2821')
               ) AS t(status, address, house_date, floor, square, room_number, price, agent_id, photo, description, district, apart_type, geotag)
 WHERE NOT EXISTS (SELECT 1 FROM "apartment" LIMIT 1);

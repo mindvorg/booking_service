@@ -9,6 +9,7 @@ import com.example.exceptions.UserAlreadyExistsException;
 import com.example.service.FeedbackService;
 import com.example.service.UserService;
 import com.example.utils.JwtTokenUtil;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -138,4 +139,14 @@ public class UserController {
         return ResponseEntity.ok(feedBackService.saveFeedback(feedback));
     }
 
+    @PatchMapping("/admin/changeRole")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> changeRole(@RequestBody AdminRequestDTO adminRequestDTO){
+        return ResponseEntity.ok(userService.changeRole(adminRequestDTO));
+    }
+    @Data
+    public static class AdminRequestDTO {
+        private Long id;
+        private UserRole role;
+    }
 }
