@@ -1,8 +1,8 @@
 import type { PhotoItem } from '../../../shared/types/types';
 
-export async function uploadPhotos(photos: PhotoItem[]): Promise<string[]> {
+export async function uploadPhotos(photos: File[]): Promise<string[]> {
 	const form = new FormData();
-	photos.forEach((p) => p.file && form.append("files", p.file));
+	photos.forEach((p) => p && form.append("files", p));
 
 	const res = await fetch("http://localhost:8080/photo/upload", {
 		method: "POST",
@@ -15,19 +15,17 @@ export async function uploadPhotos(photos: PhotoItem[]): Promise<string[]> {
 	return data as string[];
 }
 
-export async function deletePhoto(photos: PhotoItem[]): Promise<string[]> {
-	const form = new FormData();
-	photos.forEach((p) => p.file && form.append("files", p.file));
+export async function deletePhoto(photos: string[]): Promise<void> {
 
-	const res = await fetch("/foto/delete", {
-		method: "POST",
-		body: form,
+	const res = await fetch("http://localhost:8080/photo/delete", {
+		method: "DELETE",
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+		},
+		body: JSON.stringify(photos),
 	});
 
-	if (!res.ok) throw new Error("Не удалось загрузить фотографии");
-
-	const data = await res.json();
-	return data.urls as string[];
+	if (!res.ok) throw new Error("Не удалось удалить фотографии");
 }
 
 export async function createAraptment(payload: any): Promise<any> {

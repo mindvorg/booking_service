@@ -4,6 +4,7 @@ import "./Auth.scss";
 import { Context } from '../../app/main';
 import LoginForm from '../../features/loginForm/LoginForm';
 import type { IUser } from '../../shared/types/types';
+import { deletePhoto, uploadPhotos } from '../../pages/createApartment/api';
 
 function Auth() {
 	const { store } = useContext(Context);
@@ -91,8 +92,16 @@ function Auth() {
 		try {
 			// Сначала загружаем аватар, если есть
 			if (avatarFile && store.user.role === 'AGENT') {
-				const avatarUrl = await uploadAvatar(avatarFile, store.user.id);
-				updates.avatar = avatarUrl;
+				console.log(store.user?.avatar);
+				console.log(avatarFile);
+				if (store.user?.avatar) {
+					await deletePhoto([store.user?.avatar]);
+					const res = await uploadPhotos([avatarFile]);
+					updates.avatar = res[0];
+				} else {
+					const res = await uploadPhotos([avatarFile]);
+					updates.avatar = res[0];
+				}
 			}
 
 			// Если есть изменения текстовых полей, отправляем их

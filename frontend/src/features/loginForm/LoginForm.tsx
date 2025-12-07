@@ -80,7 +80,7 @@ function LoginForm() {
 			let finalPhotoUrls: string[] = [];
 
 			if (newPhotos.length) {
-				const uploadedUrls = await uploadPhotos(newPhotos);
+				const uploadedUrls = await uploadPhotos(newPhotos.map(ph => ph.file) as File[]);
 				console.log(uploadedUrls);
 				finalPhotoUrls = uploadedUrls;
 			}
