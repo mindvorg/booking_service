@@ -51,7 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/users/registration").permitAll()
                         .requestMatchers("/users/saveAgent").permitAll()
-                        .requestMatchers("/users/agents").permitAll()
+                        .requestMatchers("/users/agents/all").permitAll()
 
                         // Загрузка фото должна быть защищена (только для агентов)
                         .requestMatchers("/photo/**").authenticated()
