@@ -17,7 +17,7 @@ export interface LoginResponse {
 	token: string;
 	email: string;
 	name: string;
-	id: string;
+	id: number;
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;
@@ -26,7 +26,7 @@ export interface LoginResponse {
 export interface IUser {
 	email: string;
 	name: string;
-	id: string;
+	id: number;
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;

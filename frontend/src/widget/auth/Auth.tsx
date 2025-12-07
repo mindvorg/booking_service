@@ -97,7 +97,7 @@ function Auth() {
 
 			// Если есть изменения текстовых полей, отправляем их
 			if (Object.keys(updates).length > 0) {
-				//await store.edit(updates, store.user.id);
+				await store.edit(updates, store.user.id);
 			}
 
 			setIsEditing(false);
@@ -109,7 +109,7 @@ function Auth() {
 	};
 
 	// Функция загрузки аватара (нужно будет реализовать в api)
-	const uploadAvatar = async (file: File, userId: string): Promise<string> => {
+	const uploadAvatar = async (file: File, userId: number): Promise<string> => {
 		// Временная заглушка - реализуйте загрузку на сервер
 		return URL.createObjectURL(file);
 	};

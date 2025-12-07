@@ -99,4 +99,20 @@ export default class Store {
 			console.error(e.response?.data?.message);
 		}
 	}
+
+	async edit(updates: Record<string, any>, id: number) {
+		console.log(updates);
+		try {
+			await fetch(`http://localhost:8080/users/${id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${localStorage.getItem('token')}`,
+				},
+				body: JSON.stringify(updates)
+			});
+		} catch (e: any) {
+			console.error(e.response?.data?.message);
+		}
+	}
 }
