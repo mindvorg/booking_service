@@ -59,7 +59,7 @@ public class SecurityConfig {
 
                         // Сохранение квартир - только для авторизованных
                         .requestMatchers("/apartments/saveApart").authenticated()
-                        .requestMatchers("/apartments/feedback/add").authenticated()
+                        .requestMatchers("/apartments/feedback/add").permitAll()
 
                         // Просмотр квартир доступен всем
                         .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()

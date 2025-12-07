@@ -37,13 +37,13 @@ public class ApartmentsController {
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<ApartmentsData> patchApartment(@RequestBody ApartmentsData apart, @PathVariable Long id) {
         return ResponseEntity.ok(apartmentsService.updateApart(apart, id));
     }
 
     @PostMapping("/{id}")
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<Boolean> deleteApartment(@PathVariable Long id) {
         apartmentsService.deleteApartById(id);
         return ResponseEntity.ok().build();
@@ -91,7 +91,6 @@ public class ApartmentsController {
     }
 
     @PostMapping("/feedback/add")
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ResponseEntity<FeedbackData> addApartmentFeedback(@RequestBody FeedbackData feedbackData) {
         return ResponseEntity.ok(apartmentsService.saveFeedBack(feedbackData));
     }

@@ -108,7 +108,7 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.findAllUsers().stream()
                 .map(e -> UserDTO.builder()
@@ -140,13 +140,13 @@ public class UserController {
     }
 
     @PostMapping("/agents/feedback/add")
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> addFeedbackOnAgent(@RequestBody AgentsFeedbackData feedback) {
         return ResponseEntity.ok(feedBackService.saveFeedback(feedback));
     }
 
     @PatchMapping("/admin/changeRole")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> changeRole(@RequestBody AdminRequestDTO adminRequestDTO) {
         return ResponseEntity.ok(userService.changeRole(adminRequestDTO));
     }

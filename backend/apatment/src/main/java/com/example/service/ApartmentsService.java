@@ -54,7 +54,7 @@ public class ApartmentsService {
     }
 
     @Transactional
-    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ApartmentsData saveApart(ApartmentsData apartmentsData) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

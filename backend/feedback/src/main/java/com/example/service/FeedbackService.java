@@ -22,7 +22,6 @@ public class FeedbackService {
     }
 
     public List<String> getFeedbackOnAgentById(Long agentId) {
-
         return agentsFeedbackRepository.getAllByAgentId(agentId);
     }
 
