@@ -56,17 +56,6 @@ public class ApartmentsService {
     @Transactional
 //    @PreAuthorize("hasRole('AGENT') or hasRole('ADMIN')")
     public ApartmentsData saveApart(ApartmentsData apartmentsData) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName();
-        Optional<UserData> user = userService.findUserByEmail(currentUserEmail);
-        if (user.isEmpty()) {
-            throw new NoSuchFieldError("User not found with id: " + apartmentsData.getAgentId());
-        }
-        UserData userData = user.get();
-        Optional<AgentData> agent = userService.findAgentByUserId(userData.getId());
-        apartmentsData.setAgentId(userData.getId());
-
         return apartmentsRepository.save(apartmentsData);
     }
 
