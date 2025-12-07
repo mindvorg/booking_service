@@ -49,7 +49,7 @@ public class ApartmentsController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/saveApart")
+    @PostMapping("/add")
     public ResponseEntity<ApartmentsData> saveApartment(@RequestBody ApartmentsData apart) {
         return ResponseEntity.ok(apartmentsService.saveApart(apart));
     }
