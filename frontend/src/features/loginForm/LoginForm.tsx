@@ -81,10 +81,11 @@ function LoginForm() {
 
 			if (newPhotos.length) {
 				const uploadedUrls = await uploadPhotos(newPhotos);
-				finalPhotoUrls = [...photos.map(p => p.url), ...uploadedUrls];
-			} else {
-				finalPhotoUrls = photos.map(p => p.url);
+				console.log(uploadedUrls);
+				finalPhotoUrls = uploadedUrls;
 			}
+
+			console.log(finalPhotoUrls);
 
 			const registrationData = {
 				email,

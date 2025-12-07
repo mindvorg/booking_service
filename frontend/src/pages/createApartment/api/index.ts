@@ -4,18 +4,15 @@ export async function uploadPhotos(photos: PhotoItem[]): Promise<string[]> {
 	const form = new FormData();
 	photos.forEach((p) => p.file && form.append("files", p.file));
 
-	const res = await fetch("http://localhost:8080/foto/upload", {
+	const res = await fetch("http://localhost:8080/photo/upload", {
 		method: "POST",
-		headers: {
-			'Authorization': `Bearer ${localStorage.getItem('token')}`,
-		},
 		body: form,
 	});
 
 	if (!res.ok) throw new Error("Не удалось загрузить фотографии");
 
 	const data = await res.json();
-	return data.urls as string[];
+	return data as string[];
 }
 
 export async function deletePhoto(photos: PhotoItem[]): Promise<string[]> {

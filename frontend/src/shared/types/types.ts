@@ -21,6 +21,7 @@ export interface LoginResponse {
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;
+	agentId?: number;
 }
 
 export interface IUser {
@@ -30,6 +31,7 @@ export interface IUser {
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;
+	agentId?: number;
 }
 
 export type PhotoItem = {
