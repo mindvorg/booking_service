@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.data.UserDTO;
 import com.example.data.agent.AgentData;
+import com.example.data.agents_feedback.AgentsFeedbackData;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRole;
 import com.example.exceptions.UserAlreadyExistsException;
@@ -125,15 +126,16 @@ public class UserController {
         return ResponseEntity.ok(userService.findAllAgents());
     }
 
-    @GetMapping("/agents/feedback/{userId}")
-    public ResponseEntity<?> getFeedbackById(@PathVariable Long userId) {
-        String feedback = feedBackService.getFeedBackOnAgentById(userId);
-        return ResponseEntity.ok().build();
+    @GetMapping("/agents/feedback/{agentId}")
+    public ResponseEntity<List<String>> getFeedbackOnAgentById(@PathVariable Long agentId) {
+        List<String> feedbacks = feedBackService.getFeedbackOnAgentById(agentId);
+        return ResponseEntity.ok(feedbacks);
     }
+
     @PostMapping("/agents/feedback/add")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> addFeedbackOnAgent(@RequestBody String feedback){
-        return null;
+    public ResponseEntity<?> addFeedbackOnAgent(@RequestBody AgentsFeedbackData feedback) {
+        return ResponseEntity.ok(feedBackService.saveFeedback(feedback));
     }
 
 }

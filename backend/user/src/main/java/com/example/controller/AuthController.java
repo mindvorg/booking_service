@@ -52,6 +52,7 @@ public class AuthController {
                 if (agentInfo != null) {
                     response.put("agentId", agentInfo.getAgentId());
                     response.put("companyName", agentInfo.getCompanyName());
+                    response.put("avatar",agentInfo.getAvatar());
                 }
             }
         }
