@@ -1,13 +1,14 @@
 package com.example.service;
 
+import com.example.data.agents_feedback.AgentsFeedbackData;
 import com.example.data.agents_feedback.AgentsFeedbackRepository;
 import com.example.data.feedback.FeedbackRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
-@Transactional
 public class FeedbackService {
 
     private final AgentsFeedbackRepository agentsFeedbackRepository;
@@ -20,8 +21,12 @@ public class FeedbackService {
         this.feedbackRepository = feedbackRepository;
     }
 
-    public String getFeedBackOnAgentById(Long userId) {
+    public List<String> getFeedbackOnAgentById(Long agentId) {
 
-        return null;
+        return agentsFeedbackRepository.getAllByAgentId(agentId);
+    }
+
+    public AgentsFeedbackData saveFeedback(AgentsFeedbackData feedback) {
+        return agentsFeedbackRepository.save(feedback);
     }
 }
