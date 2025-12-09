@@ -70,7 +70,9 @@ public class ApartmentsService {
         //        return apartmentsRepository.findBySearchText(prompt);
     }
 
+    @Transactional
     public void deleteApartById(Long id) {
+        apartFeedbackRepository.deleteAllByApartId(id);
         apartmentsRepository.deleteById(id);
     }
 
