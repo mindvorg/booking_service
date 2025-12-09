@@ -9,15 +9,15 @@ import { Context } from '../main';
 const ProtectedRoute = ({ children, requiredRole }: { children: JSX.Element, requiredRole?: string; }) => {
 	const { store } = useContext(Context);
 
-	// Если пользователь не авторизован
-	/*if (!store.user) {
+	//Если пользователь не авторизован
+	if (!store.user) {
 		return <Navigate to="/auth" replace />;
-	}*/
+	}
 
 	// Если требуется определенная роль и у пользователя ее нет
-	/*if (requiredRole && store.user.role !== requiredRole) {
-		return <Navigate to="/" replace />;
-	}*/
+	if (requiredRole && store.user.role !== requiredRole) {
+		return <Navigate to="/auth" replace />;
+	}
 
 	return children;
 };
@@ -34,16 +34,15 @@ export const Navigation = () => {
 					<Route path='/agents' element={<Apartments />} />
 					<Route path='/agents/:id' element={<Apartment />} />
 					<Route path='/auth' element={<Auth />} />
+					<Route path='/profile' element={
+						<Auth />
+					}
+					/>
 					<Route path='/admin' element={
 						<ProtectedRoute requiredRole='ADMIN'>
 							<Admin />
 						</ProtectedRoute>}
 					/>
-					<Route path='/profile' element={
-						<Auth />
-					}
-					/>
-
 					<Route path='/create-apartment' element={
 						<ProtectedRoute requiredRole='AGENT'>
 							<CreateApartment />

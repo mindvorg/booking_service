@@ -108,8 +108,8 @@
 	overflow: hidden;
 	display: inline-block;
 	cursor: pointer;
-	background: #fff;
-	border: 1px dashed #cfcfcf;
+	background: #20ab5f;
+	color: white;
 	padding: 8px 12px;
 	border-radius: 8px;
 }
@@ -121,6 +121,13 @@
 	height: 100%;
 	opacity: 0;
 	cursor: pointer;
+}
+
+.drop-zone {
+	padding: 8px 12px;
+	border: 1px dashed gray;
+	border-radius: 8px;
+	cursor: grab;
 }
 
 .photo-hint {
@@ -217,5 +224,36 @@
 
 	.photo-grid {
 		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+.required-star {
+	color: #ff3b30;
+	margin-left: 2px;
+}
+
+.required-fields-note {
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 20px;
+}
+
+.field-invalid {
+	border-color: #ff3b30 !important;
+}
+
+.field-error {
+	color: #ff3b30;
+	font-size: 12px;
+	margin-top: 4px;
+	display: block;
+}
+
+.btn-disabled {
+	opacity: 0.5;
+	cursor: not-allowed !important;
+
+	&:hover {
+		background-color: #007aff !important;
 	}
 }

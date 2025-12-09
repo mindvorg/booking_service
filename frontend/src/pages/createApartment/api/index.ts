@@ -1,4 +1,3 @@
-import type { PhotoItem } from '../../../shared/types/types';
 
 export async function uploadPhotos(photos: File[]): Promise<string[]> {
 	const form = new FormData();
@@ -38,11 +37,28 @@ export async function deletePhoto(photos: string[]): Promise<void> {
 
 export async function createAraptment(payload: any): Promise<any> {
 
-	const res = await fetch("/api/apartments", {
+	const res = await fetch("http://localhost:8080/apartments/add", {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+			'Content-Type': 'application/json',
+		},
 		body: JSON.stringify(payload),
 	});
 
 	if (!res.ok) throw new Error("Ошибка создания объявления");
+}
+
+export async function editAraptment(payload: any): Promise<any> {
+
+	const res = await fetch(`http://localhost:8080/apartments/${payload.id}`, {
+		method: "PATCH",
+		headers: {
+			'Authorization': `Bearer ${localStorage.getItem('token')}`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(payload),
+	});
+
+	if (!res.ok) throw new Error("Ошибка редактирования объявления");
 }

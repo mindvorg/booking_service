@@ -1,10 +1,10 @@
 import { observer } from 'mobx-react-lite';
-import { useContext, useState, type ChangeEvent, useEffect } from 'react';
+import { useContext, useState, type ChangeEvent, useEffect, type KeyboardEvent } from 'react';
 import "./LoginForm.scss";
 import { Context } from '../../app/main';
 import type { IRegistration, PhotoItem } from '../../shared/types/types';
 import { uploadPhotos } from '../../pages/createApartment/api';
-import { redirect } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 type FormMode = 'LOGIN' | 'REGISTER';
 
@@ -32,6 +32,47 @@ function validatePhotos(files: File[], existingCount: number): File[] {
 	return validSizeFiles;
 }
 
+// Функция для форматирования email с маской
+const formatEmailWithMask = (value: string): string => {
+	// Удаляем все символы, кроме разрешенных для email
+	const cleaned = value.replace(/[^a-zA-Z0-9@._-]/g, '');
+	return cleaned;
+};
+
+// Функция для проверки валидности email
+const isValidEmail = (email: string): boolean => {
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return emailRegex.test(email);
+};
+
+// Компонент для отображения подсказки email
+const EmailHint = ({
+	email,
+	onSelect
+}: {
+	email: string;
+	onSelect: (fullEmail: string) => void;
+}) => {
+	if (!email || email.includes('@')) return null;
+
+	const commonDomains = ['gmail.com', 'mail.ru', 'yandex.ru', 'outlook.com', 'yahoo.com'];
+
+	return (
+		<div className="email-hint">
+			{commonDomains.map(domain => (
+				<button
+					type="button"
+					key={domain}
+					className="email-hint-item"
+					onClick={() => onSelect(`${email}@${domain}`)}
+				>
+					{email}@{domain}
+				</button>
+			))}
+		</div>
+	);
+};
+
 function LoginForm() {
 	const [formMode, setFormMode] = useState<FormMode>('LOGIN');
 	const [email, setEmail] = useState('');
@@ -41,10 +82,14 @@ function LoginForm() {
 	const [companyName, setCompanyName] = useState('');
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [emailError, setEmailError] = useState<string>('');
+	const [showEmailHint, setShowEmailHint] = useState(false);
 	const [registrationStatus, setRegistrationStatus] = useState<{
 		type: 'success' | 'error' | null;
 		message: string;
 	}>({ type: null, message: '' });
+
+	const navigate = useNavigate();
 
 	const formatSize = (size: number) => {
 		if (size < 1024) return `${size} B`;
@@ -54,7 +99,63 @@ function LoginForm() {
 
 	const { store } = useContext(Context);
 
+	// Валидация email при изменении
+	useEffect(() => {
+		if (email && !isValidEmail(email)) {
+			setEmailError('Введите корректный email (например: user@mail.ru)');
+		} else {
+			setEmailError('');
+		}
+
+		// Показываем подсказку если есть локальная часть email (до @)
+		setShowEmailHint(email.length > 0 && !email.includes('@'));
+	}, [email]);
+
+	const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+		const value = formatEmailWithMask(e.target.value);
+		setEmail(value);
+	};
+
+	const handleEmailSelect = (fullEmail: string) => {
+		setEmail(fullEmail);
+		setShowEmailHint(false);
+	};
+
+	const handleEmailKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		// Автодополнение при нажатии Tab
+		if (e.key === 'Tab' && email && !email.includes('@') && showEmailHint) {
+			e.preventDefault();
+			setEmail(`${email}@gmail.com`);
+			setShowEmailHint(false);
+		}
+
+		// Скрыть подсказку при нажатии Escape
+		if (e.key === 'Escape') {
+			setShowEmailHint(false);
+		}
+	};
+
+	const handleEmailBlur = () => {
+		// Небольшая задержка чтобы клик по подсказке успел сработать
+		setTimeout(() => {
+			setShowEmailHint(false);
+		}, 200);
+
+		if (email && !isValidEmail(email)) {
+			setEmailError('Введите корректный email (например: user@mail.ru)');
+		}
+	};
+
 	const handleRegister = async () => {
+		// Валидация email
+		if (!isValidEmail(email)) {
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Пожалуйста, введите корректный email'
+			});
+			return;
+		}
+
 		// Валидация обязательных полей
 		if (!email || !password || !fullName) {
 			setRegistrationStatus({
@@ -149,6 +250,15 @@ function LoginForm() {
 	};
 
 	const handleLogin = async () => {
+		// Валидация email
+		if (!isValidEmail(email)) {
+			setRegistrationStatus({
+				type: 'error',
+				message: 'Пожалуйста, введите корректный email'
+			});
+			return;
+		}
+
 		if (!email || !password) {
 			setRegistrationStatus({
 				type: 'error',
@@ -168,7 +278,7 @@ function LoginForm() {
 				setEmail('');
 				setPassword('');
 
-				redirect('/profile');
+				navigate('/profile', { replace: true });
 
 			} else {
 				setRegistrationStatus({
@@ -263,14 +373,26 @@ function LoginForm() {
 			)}
 
 			<div className="form">
-				<input
-					type="text"
-					placeholder='Email'
-					value={email}
-					onChange={e => setEmail(e.target.value)}
-					className='inputForm'
-					disabled={isLoading}
-				/>
+				<div className="email-input-wrapper">
+					<input
+						type="text"
+						placeholder='Email (например: example@mail.ru)'
+						value={email}
+						onChange={handleEmailChange}
+						onKeyDown={handleEmailKeyDown}
+						onBlur={handleEmailBlur}
+						onFocus={() => email && !email.includes('@') && setShowEmailHint(true)}
+						className={`inputForm ${emailError ? 'error' : ''} ${isValidEmail(email) && email ? 'valid' : ''}`}
+						disabled={isLoading}
+						autoComplete="email"
+					/>
+					{emailError && <div className="field-error">{emailError}</div>}
+					{email && !emailError && isValidEmail(email) && (
+						<div className="field-success">✓ Корректный email</div>
+					)}
+					{showEmailHint && <EmailHint email={email} onSelect={handleEmailSelect} />}
+				</div>
+
 				<input
 					type="password"
 					placeholder='Пароль'
@@ -377,7 +499,7 @@ function LoginForm() {
 					<button
 						onClick={handleLogin}
 						className='btnForm primary'
-						disabled={isLoading}
+						disabled={isLoading || !isValidEmail(email) || !password}
 					>
 						{isLoading ? 'Вход...' : 'Войти'}
 					</button>
@@ -385,7 +507,7 @@ function LoginForm() {
 					<button
 						onClick={handleRegister}
 						className='btnForm primary'
-						disabled={isLoading}
+						disabled={isLoading || !isValidEmail(email) || !password || !fullName || (role === 'AGENT' && !companyName)}
 					>
 						{isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
 					</button>

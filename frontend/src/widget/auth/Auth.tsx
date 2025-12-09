@@ -5,21 +5,7 @@ import { Context } from '../../app/main';
 import LoginForm from '../../features/loginForm/LoginForm';
 import type { IUser } from '../../shared/types/types';
 import { deletePhoto, uploadPhotos } from '../../pages/createApartment/api';
-
-// Функция для извлечения имени файла из URL
-function extractFileNameFromUrl(url: string): string {
-	if (!url) return '';
-
-	// Ищем "/photos/" в URL
-	const photosIndex = url.lastIndexOf('/photos/');
-	if (photosIndex !== -1) {
-		return url.substring(photosIndex + 8); // 8 = длина "/photos/"
-	}
-
-	// Если "/photos/" не найден, берем имя файла после последнего "/"
-	const lastSlashIndex = url.lastIndexOf('/');
-	return lastSlashIndex !== -1 ? url.substring(lastSlashIndex + 1) : url;
-}
+import { useNavigate } from 'react-router';
 
 function Auth() {
 	const { store } = useContext(Context);
@@ -31,6 +17,8 @@ function Auth() {
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [avatarPreview, setAvatarPreview] = useState<string>('');
 	const [isSaving, setIsSaving] = useState(false);
+
+	const navigate = useNavigate();
 
 	// Сохраняем оригинальный аватар при входе в режим редактирования
 	const [originalAvatar, setOriginalAvatar] = useState<string>('');
@@ -58,6 +46,10 @@ function Auth() {
 	if (!store.isAuth) {
 		return <LoginForm />;
 	}
+
+	const goToMyApart = () => {
+		navigate(`/apartments/search?agentId=${store.user.agentId}`, { replace: true });
+	};
 
 	// Функция перевода роли на русский
 	const getRoleInRussian = (role: string) => {
@@ -90,7 +82,7 @@ function Auth() {
 
 	// Обработчик сохранения изменений
 	const handleSave = async () => {
-		if (!store.user?.id) return;
+		if (!store.user?.userId) return;
 
 		const updates: Record<string, any> = {};
 
@@ -148,7 +140,7 @@ function Auth() {
 
 			// Если есть изменения текстовых полей или аватара, отправляем их
 			if (Object.keys(updates).length > 0) {
-				await store.edit(updates, store.user.id);
+				await store.edit(updates, store.user.userId);
 			}
 
 			setIsEditing(false);
@@ -278,13 +270,13 @@ function Auth() {
 								{isEditing ? (
 									<div className="edit-form">
 										<div className="form-group">
-											<label htmlFor="name">Ваше имя</label>
+											<label htmlFor="name">Ваше ФИО</label>
 											<input
 												id="name"
 												type="text"
 												value={formData.name}
 												onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-												placeholder="Введите ваше имя"
+												placeholder="Введите ваше ФИО"
 												className="form-input"
 											/>
 										</div>
@@ -328,7 +320,7 @@ function Auth() {
 								) : (
 									<div className="info-grid">
 										<div className="info-item">
-											<span className="info-label">Имя</span>
+											<span className="info-label">ФИО</span>
 											<span className="info-value">{user.name}</span>
 										</div>
 										<div className="info-item">
@@ -357,12 +349,8 @@ function Auth() {
 										style={{ backgroundColor: '#20ab5f' }}
 										onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#188b4b'}
 										onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#20ab5f'}
-										onClick={() => {
-											// Навигация к моим объявлениям
-											window.location.href = '/my-listings';
-										}}
+										onClick={() => goToMyApart()}
 									>
-										<span className="btn-icon">🏠</span>
 										Мои объявления
 									</button>
 								</div>

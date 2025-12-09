@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { HouseLogo, Login, Map } from '../../shared/icons';
 import { useContext } from 'react';
 import { Context } from '../../app/main';
@@ -8,9 +8,16 @@ import './Header.scss';
 const Header = () => {
 
 	const { store } = useContext(Context);
+	const navigate = useNavigate();
+	const location = useLocation();
 
 	const handleLogout = async () => {
 		await store.logout();
+		if (location.pathname === '/profile') {
+			// Заменяем текущий URL на /auth без добавления в историю
+			navigate('/auth', { replace: true });
+		}
+
 	};
 
 	return (
@@ -39,11 +46,6 @@ const Header = () => {
 								? <Link className="nav__list-link auth not-hover" to='/profile'><p>{store.user.name}</p></Link>
 								: <Link className="nav__list-link auth not-hover" to='/auth'><Login color='#999999' /> <p>Войти</p></Link>
 						}
-						{
-							store.user.role == "ADMIN"
-								? <li className="nav__list-item"><Link className="nav__list-link" to='/admin'>Админ</Link></li>
-								: null
-						}
 					</div>
 				</div>
 			</div>
@@ -60,6 +62,11 @@ const Header = () => {
 						<li className="nav__list-item"><Link className="nav__list-link" to='/apartments/search?status=1'>Аренда</Link></li>
 						<li className="nav__list-item"><Link className="nav__list-link" to={`/apartments/search?minHouseDate=${new Date().getFullYear() - 5}&maxHouseDate=${new Date().getFullYear()}`}>Новостройки</Link></li>
 						<li className="nav__list-item"><Link className="nav__list-link" to='/agents'>Агенты</Link></li>
+						{
+							store.user.role == "ADMIN"
+								? <li className="nav__list-item"><Link className="nav__list-link" to='/admin'>Админ</Link></li>
+								: null
+						}
 					</ul>
 				</div>
 			</div>

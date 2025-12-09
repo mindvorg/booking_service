@@ -1,5 +1,5 @@
 export interface Apartment {
-	id: number;
+	id?: number;
 	status: number;
 	address: string;
 	houseDate: number;
@@ -8,7 +8,7 @@ export interface Apartment {
 	roomNumber: number;
 	price: number;
 	agentId: number;
-	photos: string[];
+	photo: string;
 	description: string;
 	district: string;
 };
@@ -17,7 +17,7 @@ export interface LoginResponse {
 	token: string;
 	email: string;
 	name: string;
-	id: number;
+	userId: number;
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;
@@ -48,4 +48,12 @@ export type IRegistration = {
 	role: 'USER' | 'AGENT';
 	companyName?: string;
 	avatar?: string;
+};
+
+export type IApartFeedback = {
+	userId: number;
+	apartId: number;
+	id: number;
+	feedbackPhoto?: string;
+	feedbackText: string;
 };

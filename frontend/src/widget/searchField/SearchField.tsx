@@ -84,16 +84,18 @@ export const SearchField: React.FC<SearchProps> = ({ onSearch, initialParams }) 
 				<div className="filter-section">
 					<div className="form-group">
 						<label className="input-label">Тип сделки</label>
-						<select
-							className="select-field"
-							name="status"
-							value={params.status}
-							onChange={handleInputChange}
-						>
-							<option value="">Все</option>
-							<option value="0">Покупка</option>
-							<option value="1">Аренда</option>
-						</select>
+						<div className="select-wrapper">
+							<select
+								className="select-field"
+								name="status"
+								value={params.status}
+								onChange={handleInputChange}
+							>
+								<option value="">Все</option>
+								<option value="0">Покупка</option>
+								<option value="1">Аренда</option>
+							</select>
+						</div>
 					</div>
 
 					<div className="form-group">
@@ -110,16 +112,19 @@ export const SearchField: React.FC<SearchProps> = ({ onSearch, initialParams }) 
 
 					<div className="form-group">
 						<label className="input-label">Сортировка</label>
-						<select
-							className="select-field"
-							name="sort"
-							value={params.sort}
-							onChange={handleInputChange}
-						>
-							<option value="">Без сортировки</option>
-							<option value="ASC">Цена по возрастанию</option>
-							<option value="DESC">Цена по убыванию</option>
-						</select>
+						<div className="select-wrapper">
+							<select
+								className="select-field"
+								name="sort"
+								value={params.sort}
+								onChange={handleInputChange}
+							>
+								<option value="">Без сортировки</option>
+								<option value="ASC">Цена по возрастанию</option>
+								<option value="DESC">Цена по убыванию</option>
+							</select>
+						</div>
+
 					</div>
 				</div>
 
@@ -259,8 +264,7 @@ export const SearchField: React.FC<SearchProps> = ({ onSearch, initialParams }) 
 						Сбросить фильтры
 					</button>
 					<button className="search-button" type="submit">
-						<span className="search-icon">🔍</span>
-						Найти квартиры
+						Найти
 					</button>
 				</div>
 			</div>

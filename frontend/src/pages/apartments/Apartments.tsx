@@ -69,10 +69,12 @@ export const Apartments = () => {
 	const handleSearch = (searchParams: URLSearchParams) => {
 		// Обновляем URL браузера
 		const queryString = searchParams.toString();
-		const newPath = queryString ? `/apartments?${queryString}` : '/apartments/all';
+		console.log(queryString);
+		const newPath = queryString ? `/apartments/search?${queryString}` : '/apartments';
 
 		// Используем replace вместо push, чтобы не копить историю поиска
-		navigate(newPath, { replace: true });
+		console.log(newPath);
+		navigate(newPath);
 	};
 
 	return (

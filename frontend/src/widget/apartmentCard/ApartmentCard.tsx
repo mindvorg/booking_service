@@ -12,10 +12,19 @@ export const ApartmentCard = ({ apartment }: ApartmentCardProps) => {
 		return `${apartment.roomNumber}-комн. квартира\u00A0\u00A0${apartment.square}м²\u00A0\u00A0${apartment.floor} этаж`;
 	};
 
+	const getPhoto = (): string | undefined => {
+		if (apartment.photo) {
+			const photoArray = apartment.photo.split(',').map((url: string) => url.trim()).filter(url => url.length > 0);
+
+			return photoArray[0];
+		}
+		return undefined;
+	};
+
 	return (
 		<div className="apartment-card">
 			<div className="apartment-image">
-				<img src={apartment.photo} alt={getTitle()} />
+				<img src={getPhoto()} alt={getTitle()} />
 			</div>
 			<div className="apartment-details">
 				<h3 className="apartment-title">{getTitle()}</h3>

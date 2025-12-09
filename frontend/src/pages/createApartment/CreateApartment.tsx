@@ -1,14 +1,21 @@
-import { useState, type ChangeEvent, useEffect } from "react";
+import { useState, type ChangeEvent, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import './CreateApartment.scss';
-import { createAraptment, uploadPhotos, deletePhoto } from './api';
+import { createAraptment, uploadPhotos, deletePhoto, editAraptment } from './api';
 import type { Apartment, PhotoItem } from '../../shared/types/types';
 import { getApartmentById } from '../../shared/api';
-
+import { Context } from '../../app/main';
 
 const MAX_FILES = 20;
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+// Ограничения для полей
+const MAX_ROOMS = 99;        // Максимум двузначное число
+const MAX_SQUARE = 999;      // Максимум трехзначное число
+const MAX_FLOOR = 9999;      // Максимум четырехзначное число
+const MAX_HOUSE_DATE = 9999; // Максимум четырехзначное число
+const MIN_HOUSE_DATE = 1000; // Минимальный год постройки
 
 function validatePhotos(files: File[], existingCount: number): File[] {
 	const imageFiles = files.filter(f => f.type.startsWith("image/"));
@@ -30,13 +37,37 @@ function validatePhotos(files: File[], existingCount: number): File[] {
 	return validSizeFiles;
 }
 
+// Функция ограничения значения
+const limitValue = (value: number, max: number, min = 0): number => {
+	if (value > max) return max;
+	if (value < min) return min;
+	return value;
+};
+
+// Функция проверки заполненности всех обязательных полей
+const isFormValid = (formData: Apartment): boolean => {
+	return (
+		formData.roomNumber > 0 &&
+		formData.square > 0 &&
+		formData.floor > 0 &&
+		formData.price > 0 &&
+		formData.houseDate >= MIN_HOUSE_DATE &&
+		formData.houseDate <= new Date().getFullYear() &&
+		formData.district.trim() !== "" &&
+		formData.address.trim() !== "" &&
+		formData.description.trim() !== ""
+	);
+};
+
 export default function CreateApartment() {
 	const { id } = useParams<{ id: string; }>();
 	const isEdit = Boolean(id);
 
+	const { store } = useContext(Context);
+
 	const [photos, setPhotos] = useState<PhotoItem[]>([]);
+	const [deletedPhotos, setDeletedPhotos] = useState<string[]>([]); // Фото, удаленные при редактировании
 	const [formData, setFormData] = useState<Apartment>({
-		id: 0,
 		status: 0,
 		address: "",
 		houseDate: 0,
@@ -45,17 +76,58 @@ export default function CreateApartment() {
 		roomNumber: 0,
 		price: 0,
 		agentId: 0,
-		photos: [],
+		photo: '',
 		description: "",
 		district: "",
-		apartType: "",
-		geotag: "",
 	});
+
+	// Проверяем валидность формы
+	const isFormComplete = isFormValid(formData);
 
 	const formatSize = (size: number) => {
 		if (size < 1024) return `${size} B`;
 		if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
 		return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+	};
+
+	// --- Обработчики полей с ограничениями ---
+	const handleRoomNumberChange = (value: number) => {
+		const limitedValue = limitValue(value, MAX_ROOMS);
+		setFormData({ ...formData, roomNumber: limitedValue });
+	};
+
+	const handleSquareChange = (value: number) => {
+		const limitedValue = limitValue(value, MAX_SQUARE);
+		setFormData({ ...formData, square: limitedValue });
+	};
+
+	const handleFloorChange = (value: number) => {
+		const limitedValue = limitValue(value, MAX_FLOOR);
+		setFormData({ ...formData, floor: limitedValue });
+	};
+
+	const handleHouseDateChange = (value: number) => {
+		// Проверяем, что год постройки не больше текущего года
+		const currentYear = new Date().getFullYear();
+		const maxYear = Math.min(MAX_HOUSE_DATE, currentYear);
+		const limitedValue = limitValue(value, maxYear, MIN_HOUSE_DATE);
+		setFormData({ ...formData, houseDate: limitedValue });
+	};
+
+	const handlePriceChange = (value: number) => {
+		setFormData({ ...formData, price: value > 0 ? value : 0 });
+	};
+
+	const handleDistrictChange = (value: string) => {
+		setFormData({ ...formData, district: value });
+	};
+
+	const handleAddressChange = (value: string) => {
+		setFormData({ ...formData, address: value });
+	};
+
+	const handleDescriptionChange = (value: string) => {
+		setFormData({ ...formData, description: value });
 	};
 
 	// --- Подгрузка данных для редактирования ---
@@ -64,10 +136,25 @@ export default function CreateApartment() {
 		(async () => {
 			try {
 				const data = await getApartmentById(Number(id));
-				setFormData({ ...data, photos: data.photos || [] });
 
-				if (data.photos?.length) {
-					const initialPhotos = data.photos.map((url: string) => ({
+				// Применяем ограничения при загрузке данных
+				const limitedData = {
+					...data,
+					photo: data.photo || '',
+					roomNumber: limitValue(data.roomNumber, MAX_ROOMS),
+					square: limitValue(data.square, MAX_SQUARE),
+					floor: limitValue(data.floor, MAX_FLOOR),
+					houseDate: limitValue(data.houseDate, Math.min(MAX_HOUSE_DATE, new Date().getFullYear()), MIN_HOUSE_DATE)
+				};
+
+				setFormData(limitedData);
+
+				if (data.photo) {
+					// Разбиваем строку на массив URL
+					const photoArray = data.photo.split(',').map((url: string) => url.trim()).filter(url => url.length > 0);
+
+					// Создаем массив фото для отображения
+					const initialPhotos = photoArray.map((url: string) => ({
 						file: null,
 						url,
 						name: url.split("/").pop() || "photo",
@@ -95,6 +182,7 @@ export default function CreateApartment() {
 			url: URL.createObjectURL(file),
 			name: file.name,
 			sizeText: formatSize(file.size),
+			isExisting: false, // Новые фото помечаем как несуществующие
 		}));
 
 		setPhotos(prev => [...prev, ...arr]);
@@ -102,9 +190,20 @@ export default function CreateApartment() {
 	};
 
 	const removePhoto = (index: number) => {
+		const photoToRemove = photos[index];
+
+		// Если фото существующее (уже загружено на сервер) - добавляем в список для удаления
+		if (isEdit && photoToRemove.isExisting && photoToRemove.url) {
+			setDeletedPhotos(prev => [...prev, photoToRemove.url]);
+		}
+
+		// Удаляем из локального состояния
 		setPhotos(prev => {
 			const copy = [...prev];
-			URL.revokeObjectURL(copy[index].url);
+			// Освобождаем память только для новых фото (ObjectURL)
+			if (!copy[index].isExisting) {
+				URL.revokeObjectURL(copy[index].url);
+			}
 			copy.splice(index, 1);
 			return copy;
 		});
@@ -121,6 +220,7 @@ export default function CreateApartment() {
 			url: URL.createObjectURL(file),
 			name: file.name,
 			sizeText: formatSize(file.size),
+			isExisting: false,
 		}));
 		setPhotos(prev => [...prev, ...arr]);
 	};
@@ -128,30 +228,75 @@ export default function CreateApartment() {
 	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
 
 	// --- Создание / редактирование объявления ---
-	async function createApartment() {
+	async function handleSubmit() {
+		// Дополнительная проверка перед отправкой
+		if (!isFormComplete) {
+			alert("Пожалуйста, заполните все обязательные поля");
+			return;
+		}
+
 		try {
-			// --- 1. Удаляем удалённые фото с сервера (только для редактирования) ---
-			const existingPhotos = photos.filter(p => p.isExisting);
-			const removedPhotos = formData.photos.filter(p => !existingPhotos.some(ep => ep.url === p));
-			for (const url of removedPhotos) {
-				await deletePhoto(url);
+			// --- 1. Удаляем фото с сервера (только для редактирования) ---
+			if (isEdit && deletedPhotos.length > 0) {
+				try {
+					await deletePhoto(deletedPhotos);
+					console.log("Фото удалены с сервера:", deletedPhotos);
+				} catch (err) {
+					console.error("Ошибка при удалении фото с сервера:", err);
+					alert("Не удалось удалить некоторые фото с сервера. Попробуйте еще раз.");
+					return; // Прерываем если не удалось удалить фото
+				}
 			}
 
-			// --- 2. Загружаем новые фотографии ---
-			const newPhotos = photos.filter(p => !p.isExisting && p.file);
-			let finalPhotoUrls: string[] = [];
-			if (newPhotos.length) {
-				const uploadedUrls = await uploadPhotos(newPhotos); // массив URL
-				finalPhotoUrls = [...existingPhotos.map(p => p.url), ...uploadedUrls];
-			} else {
-				finalPhotoUrls = existingPhotos.map(p => p.url);
+			// --- 2. Подготовка agentId ---
+			formData.agentId = store.user?.agentId ? store.user.agentId : 0;
+
+			// --- 3. Получаем URL существующих фото (те, что не были удалены) ---
+			const existingPhotoUrls = photos
+				.filter(p => p.isExisting)
+				.map(p => p.url);
+
+			// --- 4. Загружаем новые фотографии ---
+			const newPhotos = photos
+				.filter(p => !p.isExisting && p.file)
+				.map(p => p.file as File);
+
+			let allPhotoUrls = [...existingPhotoUrls];
+
+			if (newPhotos.length > 0) {
+				const uploadedUrls = await uploadPhotos(newPhotos);
+				allPhotoUrls = [...allPhotoUrls, ...uploadedUrls];
 			}
 
-			// --- 3. Сохраняем данные ---
-			await createAraptment({ ...formData, photos: finalPhotoUrls });
-			alert("Объявление успешно сохранено!");
+			// --- 5. Преобразуем массив URL в строку для отправки на сервер ---
+			const photoString = allPhotoUrls.join(', ');
+
+			// --- 6. Создаем payload с строкой фото ---
+			const payload = {
+				...formData,
+				photo: photoString,
+				// Если редактируем, добавляем id
+				...(isEdit && id && { id: Number(id) })
+			};
+
+			console.log("Отправляем данные:", payload);
+
+			// --- 7. Отправляем данные ---
+			isEdit ? await editAraptment(payload) : await createAraptment(payload);
+			alert(isEdit ? "Объявление успешно обновлено!" : "Объявление успешно создано!");
+
+			// --- 8. Очистка ObjectURL для новых фото ---
+			photos.forEach(photo => {
+				if (!photo.isExisting) {
+					URL.revokeObjectURL(photo.url);
+				}
+			});
+
+			// Очищаем список удаленных фото после успешного сохранения
+			setDeletedPhotos([]);
+
 		} catch (err) {
-			console.error(err);
+			console.error("Ошибка при сохранении объявления:", err);
 			alert("Ошибка при сохранении объявления");
 		}
 	}
@@ -161,55 +306,88 @@ export default function CreateApartment() {
 			<div className="form-card">
 				<h1 className="form-title">{isEdit ? "Редактировать объявление" : "Создать объявление"}</h1>
 
+				<div className="required-fields-note">
+					<span className="required-star">*</span> - обязательные поля
+				</div>
+
 				<div className="form-grid">
-					{/* --- Поля как у тебя --- */}
+					{/* --- Поля с ограничениями --- */}
 					<div className="form-row three-cols">
 						<div>
-							<label className="field-label">Комнат</label>
+							<label className="field-label">
+								Комнат (макс. {MAX_ROOMS}) <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<input
 									type="number"
-									value={formData.roomNumber}
-									onChange={e => setFormData({ ...formData, roomNumber: Number(e.target.value) })}
+									value={formData.roomNumber || ""}
+									onChange={e => handleRoomNumberChange(Number(e.target.value))}
+									min="1"
+									max={MAX_ROOMS}
+									required
+									className={formData.roomNumber <= 0 ? "field-invalid" : ""}
 								/>
+								{formData.roomNumber <= 0 && <span className="field-error">Обязательное поле</span>}
 							</div>
 						</div>
 						<div>
-							<label className="field-label">Площадь (м²)</label>
+							<label className="field-label">
+								Площадь (м², макс. {MAX_SQUARE}) <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<input
 									type="number"
-									value={formData.square}
-									onChange={e => setFormData({ ...formData, square: Number(e.target.value) })}
+									value={formData.square || ""}
+									onChange={e => handleSquareChange(Number(e.target.value))}
+									min="1"
+									max={MAX_SQUARE}
+									required
+									className={formData.square <= 0 ? "field-invalid" : ""}
 								/>
+								{formData.square <= 0 && <span className="field-error">Обязательное поле</span>}
 							</div>
 						</div>
 						<div>
-							<label className="field-label">Этаж</label>
+							<label className="field-label">
+								Этаж (макс. {MAX_FLOOR}) <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<input
 									type="number"
-									value={formData.floor}
-									onChange={e => setFormData({ ...formData, floor: Number(e.target.value) })}
+									value={formData.floor || ""}
+									onChange={e => handleFloorChange(Number(e.target.value))}
+									min="1"
+									max={MAX_FLOOR}
+									required
+									className={formData.floor <= 0 ? "field-invalid" : ""}
 								/>
+								{formData.floor <= 0 && <span className="field-error">Обязательное поле</span>}
 							</div>
 						</div>
 					</div>
 
 					<div className="form-row three-cols">
 						<div>
-							<label className="field-label">Цена (₽)</label>
+							<label className="field-label">
+								Цена (₽) <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<input
 									type="number"
-									value={formData.price}
-									onChange={e => setFormData({ ...formData, price: Number(e.target.value) })}
+									value={formData.price || ""}
+									onChange={e => handlePriceChange(Number(e.target.value))}
+									min="1"
+									required
+									className={formData.price <= 0 ? "field-invalid" : ""}
 								/>
+								{formData.price <= 0 && <span className="field-error">Обязательное поле</span>}
 							</div>
 						</div>
 
 						<div>
-							<label className="field-label">Статус</label>
+							<label className="field-label">
+								Статус <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<select
 									value={formData.status}
@@ -222,68 +400,80 @@ export default function CreateApartment() {
 						</div>
 
 						<div>
-							<label className="field-label">Год постройки</label>
+							<label className="field-label">
+								Год постройки ({MIN_HOUSE_DATE}-{new Date().getFullYear()}) <span className="required-star">*</span>
+							</label>
 							<div className="field-input">
 								<input
 									type="number"
-									value={formData.houseDate}
-									onChange={e => setFormData({ ...formData, houseDate: Number(e.target.value) })}
+									value={formData.houseDate || ""}
+									onChange={e => handleHouseDateChange(Number(e.target.value))}
+									min={MIN_HOUSE_DATE}
+									max={new Date().getFullYear()}
+									required
+									className={formData.houseDate < MIN_HOUSE_DATE ? "field-invalid" : ""}
 								/>
+								{formData.houseDate < MIN_HOUSE_DATE && <span className="field-error">Обязательное поле</span>}
 							</div>
 						</div>
 					</div>
 
 					{/* --- Остальные поля: Район, Тип квартиры, Адрес, Описание --- */}
 					<div className="form-row">
-						<label className="field-label">Район</label>
+						<label className="field-label">
+							Район <span className="required-star">*</span>
+						</label>
 						<div className="field-input">
 							<input
 								type="text"
 								value={formData.district}
-								onChange={e => setFormData({ ...formData, district: e.target.value })}
+								onChange={e => handleDistrictChange(e.target.value)}
+								required
+								className={!formData.district.trim() ? "field-invalid" : ""}
 							/>
+							{!formData.district.trim() && <span className="field-error">Обязательное поле</span>}
 						</div>
 					</div>
 
 					<div className="form-row">
-						<label className="field-label">Тип квартиры</label>
-						<div className="field-input">
-							<input
-								type="text"
-								placeholder="Студия, Хрущёвка, Новостройка"
-								value={formData.apartType}
-								onChange={e => setFormData({ ...formData, apartType: e.target.value })}
-							/>
-						</div>
-					</div>
-
-					<div className="form-row">
-						<label className="field-label">Адрес</label>
+						<label className="field-label">
+							Адрес <span className="required-star">*</span>
+						</label>
 						<div className="field-input">
 							<input
 								type="text"
 								placeholder="Улица, дом, корпус"
 								value={formData.address}
-								onChange={e => setFormData({ ...formData, address: e.target.value })}
+								onChange={e => handleAddressChange(e.target.value)}
+								required
+								className={!formData.address.trim() ? "field-invalid" : ""}
 							/>
+							{!formData.address.trim() && <span className="field-error">Обязательное поле</span>}
 						</div>
 					</div>
 
 					<div className="form-row">
-						<label className="field-label">Описание</label>
+						<label className="field-label">
+							Описание <span className="required-star">*</span>
+						</label>
 						<div className="field-input">
 							<textarea
 								rows={5}
 								value={formData.description}
-								onChange={e => setFormData({ ...formData, description: e.target.value })}
+								onChange={e => handleDescriptionChange(e.target.value)}
 								placeholder="Подробное описание"
+								required
+								className={!formData.description.trim() ? "field-invalid" : ""}
 							/>
+							{!formData.description.trim() && <span className="field-error">Обязательное поле</span>}
 						</div>
 					</div>
 
-					{/* --- Фото --- */}
+					{/* --- Фото (необязательное поле) --- */}
 					<div className="form-row">
-						<label className="field-label">Фотографии</label>
+						<label className="field-label">
+							Фотографии
+						</label>
 						<div className="field-input">
 							<div className="photo-actions">
 								<label className="btn add-photos">
@@ -307,18 +497,37 @@ export default function CreateApartment() {
 											<img src={p.url} alt={p.name} />
 										</div>
 										<div className="photo-meta">
-											<div className="photo-name" title={p.name}>{p.name}</div>
+											<div className="photo-name" title={p.name}>{p.name.substring(0, 10)}
+												{p.name.length > 10 && "..."}</div>
 											<div className="photo-size">{p.sizeText}</div>
+											{p.isExisting && <div className="photo-status">На сервере</div>}
 										</div>
-										<button className="btn remove" onClick={() => removePhoto(i)} aria-label={`Удалить ${p.name}`}>✕</button>
+										<button
+											className="btn remove"
+											onClick={() => removePhoto(i)}
+											aria-label={`Удалить ${p.name}`}
+										>
+											✕
+										</button>
 									</div>
 								))}
 							</div>
+
+							{/* Отображение информации об удаленных фото (для отладки) */}
+							{isEdit && deletedPhotos.length > 0 && (
+								<div className="deleted-info">
+									<small>Будет удалено с сервера: {deletedPhotos.length} фото</small>
+								</div>
+							)}
 						</div>
 					</div>
 
 					<div className="form-row actions-row">
-						<button className="btn submit" onClick={createApartment}>
+						<button
+							className={`btn submit ${!isFormComplete ? 'btn-disabled' : ''}`}
+							onClick={handleSubmit}
+							disabled={!isFormComplete}
+						>
 							{isEdit ? "Сохранить изменения" : "Создать объявление"}
 						</button>
 					</div>
