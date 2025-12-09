@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.data.agent.AgentData;
 import com.example.data.user.UserData;
 import com.example.service.UserService;
 import com.example.utils.JwtTokenUtil;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -54,11 +56,11 @@ public class AuthController {
                 response.put("role", user.getRole().name());
                 response.put("id", user.getId());
                 if (user.getRole() == com.example.data.user.UserRole.AGENT) {
-                    UserService.AgentInfoDTO agentInfo = userService.getAgentInfo(user.getId());
-                    if (agentInfo != null) {
-                        response.put("agentId", agentInfo.getAgentId());
-                        response.put("companyName", agentInfo.getCompanyName());
-                        response.put("avatar", agentInfo.getAvatar());
+                    Optional<AgentData> agentInfo = userService.findAgentByUserId(user.getId());
+                    if (agentInfo.isPresent()) {
+                        response.put("agentId", agentInfo.get().getId());
+                        response.put("companyName", agentInfo.get().getCompanyName());
+                        response.put("avatar", agentInfo.get().getAvatar());
                     }
                 }
             }

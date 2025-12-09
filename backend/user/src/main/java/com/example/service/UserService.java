@@ -130,9 +130,15 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public List<AgentData> findAllAgents() {
+    public List<AgentInfoDTO> findAllAgents() {
         List<AgentData> agents = agentRepository.findAll();
-        return agents;
+        List<UserData> userInfo = new ArrayList<>();
+        agents.forEach(ag -> userInfo.add(userRepository.getReferenceById(ag.getUserId())));
+        List<AgentInfoDTO> list=new ArrayList<>();
+        for (int i = 0; i < agents.size(); i++) {
+            list.add(new AgentInfoDTO(userInfo.get(i), agents.get(i)));
+        }
+        return list;
     }
 
     @Transactional
@@ -196,7 +202,7 @@ public class UserService implements UserDetailsService {
                 apartmentsService.deleteApartById(apart.getId());
             });
             feedbackService.deleteAgentsFeedbackByAgentId(agentData.getId());
-            if (agentData.getAvatar()!=null) {
+            if (agentData.getAvatar() != null) {
                 photoService.deletePhotosFromS3(List.of(agentData.getAvatar()));
             }
             agentRepository.deleteByUserId(existData.getId());
