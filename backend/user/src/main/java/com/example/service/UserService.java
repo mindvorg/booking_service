@@ -190,12 +190,15 @@ public class UserService implements UserDetailsService {
             List<ApartmentsData> apartmentsDataList = apartmentsService.getByAgent(agentData.getId());
             apartmentsDataList.forEach(apart -> {
                 feedbackService.deleteApartsFeedbackByApartId(apart.getId());
-                photoService.deletePhotosFromS3(Arrays.stream(apart.getPhoto().split(",")).toList());
+                if (!apart.getPhoto().isEmpty()) {
+                    photoService.deletePhotosFromS3(Arrays.stream(apart.getPhoto().split(",")).toList());
+                }
                 apartmentsService.deleteApartById(apart.getId());
             });
-            System.err.println(apartmentsService.getByAgent(agentData.getId()).size());
             feedbackService.deleteAgentsFeedbackByAgentId(agentData.getId());
-            photoService.deletePhotosFromS3(List.of(agentData.getAvatar()));
+            if (agentData.getAvatar()!=null) {
+                photoService.deletePhotosFromS3(List.of(agentData.getAvatar()));
+            }
             agentRepository.deleteByUserId(existData.getId());
         }
         if (existData.getRole() == UserRole.USER && adminRequestDTO.getRole() == UserRole.AGENT) {
