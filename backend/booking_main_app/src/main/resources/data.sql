@@ -1,7 +1,6 @@
 -- Проверяем и вставляем пользователей
 INSERT INTO "users" ("email", "password", "name", "role")
 SELECT * FROM (VALUES
-                   ('admin@admin.com','admin','admin','ADMIN'),
                    ('ivan.petrov@example.com', 'hashed_password_1', 'Иван Петров', 'USER'),
                    ('maria.sidorova@example.com', 'hashed_password_2', 'Мария Сидорова', 'USER'),
                    ('alexei.kozlov@example.com', 'hashed_password_3', 'Алексей Козлов', 'USER'),

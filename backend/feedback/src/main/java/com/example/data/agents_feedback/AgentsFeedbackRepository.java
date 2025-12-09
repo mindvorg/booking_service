@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface AgentsFeedbackRepository extends JpaRepository<AgentsFeedbackData,Long> {
     List<AgentsFeedbackData>  getAllByAgentId(Long agentId);
+
+    void deleteAllByAgentId(Long agentId);
 }

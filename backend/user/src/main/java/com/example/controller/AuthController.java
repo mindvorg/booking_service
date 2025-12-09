@@ -33,9 +33,8 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
-    //DTO(name,mail,role)+token
     @PostMapping("/login")
-    public ResponseEntity<?> createAuthToken(@RequestBody AuthRequestDTO authRequest) {//убрать токен
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO authRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())

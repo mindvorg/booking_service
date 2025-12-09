@@ -9,11 +9,11 @@ import com.example.exceptions.UserAlreadyExistsException;
 import com.example.service.FeedbackService;
 import com.example.service.UserService;
 import com.example.utils.JwtTokenUtil;
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -38,11 +38,26 @@ public class UserController {
         this.feedBackService = feedBackService;
     }
 
+    @PostConstruct
+    public void init() {
+        if (userService.findUserByEmail("admin@admin.com").isEmpty()) {
+            UserData tmp = UserData.builder()
+                    .email("admin@admin.com")
+                    .password("admin")
+                    .name("admin")
+                    .role(UserRole.ADMIN)
+                    .build();
+            userService.saveUser(tmp);
+        }
+    }
+
     /**
      * При регистрации выбирается роль и в зависимости от выбранной роли не обязательно есть еще компания и аватарка.
      */
     @PostMapping("/registration")
     public ResponseEntity<Map<String, Object>> regUser(@RequestBody UserDTO userDTO) {//сделать 409, если уже есть пользователь
+        if (UserRole.valueOf(userDTO.getRole()).equals(UserRole.ADMIN))
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         try {
             UserData tmp = UserData.builder()
                     .email(userDTO.getEmail())
@@ -119,9 +134,9 @@ public class UserController {
                         .build()).toList());
     }
 
-    @GetMapping("/agents/{userId}")
-    public ResponseEntity<UserService.AgentInfoDTO> getAgentInfo(@PathVariable Long userId) {
-        UserService.AgentInfoDTO agentInfo = userService.getAgentInfo(userId);
+    @GetMapping("/agents/{agentId}")
+    public ResponseEntity<UserService.AgentInfoDTO> getAgentInfo(@PathVariable Long agentId) {
+        UserService.AgentInfoDTO agentInfo = userService.getAgentInfo(agentId);
         if (agentInfo != null) {
             return ResponseEntity.ok(agentInfo);
         }
