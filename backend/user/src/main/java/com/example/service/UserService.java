@@ -115,9 +115,9 @@ public class UserService implements UserDetailsService {
         return Optional.empty();
     }
 
-    public AgentInfoDTO getAgentInfo(Long userId) {
-        Optional<UserData> user = userRepository.findById(userId);
-        Optional<AgentData> agent = agentRepository.findByUserId(userId);
+    public AgentInfoDTO getAgentInfo(Long agentId) {
+        Optional<AgentData> agent = agentRepository.findById(agentId);
+        Optional<UserData> user = userRepository.findById(agent.get().getUserId());
 
         if (user.isEmpty() || agent.isEmpty()) {
             return null;
