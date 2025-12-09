@@ -144,7 +144,7 @@ public class UserController {
     }
 
     @GetMapping("/agents/all")
-    public ResponseEntity<List<AgentData>> getAllAgents() {
+    public ResponseEntity<List<UserService.AgentInfoDTO>> getAllAgents() {
         return ResponseEntity.ok(userService.findAllAgents());
     }
 
