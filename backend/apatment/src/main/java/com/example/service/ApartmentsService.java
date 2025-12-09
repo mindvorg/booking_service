@@ -2,20 +2,13 @@ package com.example.service;
 
 import com.example.data.ApartmentsData;
 import com.example.data.ApartmentsRepository;
-import com.example.data.agent.AgentData;
+import com.example.data.feedback.ApartFeedbackRepository;
 import com.example.data.feedback.FeedbackData;
-import com.example.data.feedback.FeedbackRepository;
-import com.example.data.user.UserData;
-import com.example.data.user.UserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -25,22 +18,16 @@ import java.util.Optional;
 public class ApartmentsService {
 
     private final ApartmentsRepository apartmentsRepository;
-    private final UserService userService;
-    private final FeedbackRepository feedbackRepository;
+    private final ApartFeedbackRepository apartFeedbackRepository;
 
     @Autowired
-    public ApartmentsService(ApartmentsRepository apartmentsRepository, UserService userService, FeedbackRepository feedbackRepository) {
+    public ApartmentsService(ApartmentsRepository apartmentsRepository, ApartFeedbackRepository apartFeedbackRepository) {
         this.apartmentsRepository = apartmentsRepository;
-        this.userService = userService;
-        this.feedbackRepository = feedbackRepository;
+        this.apartFeedbackRepository = apartFeedbackRepository;
     }
 
     @Transactional
     public List<ApartmentsData> getAllRows() {
-//        System.err.println(333);
-//        apartmentsRepository.findAll().forEach(e -> System.err.println(
-//                e.getAddress() + " " + e.getPrice()
-//        ));
         return apartmentsRepository.findAll();
     }
 
@@ -59,10 +46,6 @@ public class ApartmentsService {
         return apartmentsRepository.save(apartmentsData);
     }
 
-//    public List<ApartmentsData> searchApartments(String district, Integer minPrice, Integer maxPrice, Short minRooms, Short maxRooms, String status, String apartType) {
-//        return apartmentsRepository.findBySearchCriteria(
-//                district, minPrice, maxPrice, minRooms, maxRooms, status, apartType);
-//    }
 
     public List<ApartmentsData> searchApartments(Long agentId, Short status, String district, Integer minSquare,
                                                  Integer maxSquare, Short minRooms, Short maxRooms, Short minFloor,
@@ -81,41 +64,10 @@ public class ApartmentsService {
         return apartmentsRepository.getAllByAgentId(agent);
     }
 
-    @PreAuthorize("isAuthenticated()")
-    public List<ApartmentsData> getMyApartments() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUserEmail = authentication.getName();
-
-        // Находим пользователя по email
-        Optional<UserData> user = userService.findUserByEmail(currentUserEmail);
-        if (user.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        UserData userData = user.get();
-
-        // Если это агент, возвращаем его квартиры
-        if (userData.getRole() == UserRole.AGENT) {
-            return apartmentsRepository.getAllByAgentId(userData.getId());
-        }
-
-        // Если это обычный пользователь, можно вернуть избранные квартиры
-        // Пока возвращаем пустой список
-        return new ArrayList<>();
-    }
 
     public List<ApartmentsData> searchByPrompt(String prompt) {
         return List.of();
         //        return apartmentsRepository.findBySearchText(prompt);
-    }
-
-    public UserService.AgentInfoDTO getAgentInfoForApartment(Long apartmentId) {
-        Optional<ApartmentsData> apartment = apartmentsRepository.findById(apartmentId);
-        if (apartment.isPresent()) {
-            Long agentId = apartment.get().getAgentId();
-            return userService.getAgentInfo(agentId);
-        }
-        return null;
     }
 
     public void deleteApartById(Long id) {
@@ -161,10 +113,10 @@ public class ApartmentsService {
     }
 
     public List<FeedbackData> getFeedbackById(Long id) {
-        return feedbackRepository.getByApartId(id);
+        return apartFeedbackRepository.getByApartId(id);
     }
 
     public FeedbackData saveFeedBack(FeedbackData feedbackData) {
-        return feedbackRepository.save(feedbackData);
+        return apartFeedbackRepository.save(feedbackData);
     }
 }
