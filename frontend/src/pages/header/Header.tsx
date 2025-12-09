@@ -13,7 +13,7 @@ const Header = () => {
 
 	const handleLogout = async () => {
 		await store.logout();
-		if (location.pathname === '/profile') {
+		if (location.pathname === '/profile' || location.pathname === '/admin') {
 			// Заменяем текущий URL на /auth без добавления в историю
 			navigate('/auth', { replace: true });
 		}

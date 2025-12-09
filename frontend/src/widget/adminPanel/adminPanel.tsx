@@ -14,23 +14,25 @@ function AdminPanel() {
 	const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
 	const [showRoleModal, setShowRoleModal] = useState(false);
 	const [showConfirmModal, setShowConfirmModal] = useState(false);
+	const [showAgentWarningModal, setShowAgentWarningModal] = useState(false);
 	const [newRole, setNewRole] = useState<'USER' | 'AGENT' | 'ADMIN'>('USER');
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string; } | null>(null);
 
-	useEffect(() => {
-		const fetchUsers = async () => {
-			try {
-				const res = await getUserList();
-				if (res) {
-					setUsers(res);
-				}
-			} catch (error) {
-				console.error('Error fetching users:', error);
-				setMessage({ type: 'error', text: 'Ошибка при загрузке пользователей' });
+	// Функция загрузки списка пользователей
+	const fetchUsers = async () => {
+		try {
+			const res = await getUserList();
+			if (res) {
+				setUsers(res);
 			}
-		};
+		} catch (error) {
+			console.error('Error fetching users:', error);
+			setMessage({ type: 'error', text: 'Ошибка при загрузке пользователей' });
+		}
+	};
 
+	useEffect(() => {
 		fetchUsers();
 	}, []);
 
@@ -41,6 +43,9 @@ function AdminPanel() {
 			await changeUserRole(userId, newRole);
 
 			setMessage({ type: 'success', text: 'Роль пользователя успешно изменена' });
+
+			// Загружаем список пользователей заново
+			await fetchUsers();
 
 			// Скрываем сообщение через 3 секунды
 			setTimeout(() => setMessage(null), 3000);
@@ -65,21 +70,19 @@ function AdminPanel() {
 	// Обработчик выбора новой роли
 	const handleRoleSelect = (role: 'USER' | 'AGENT' | 'ADMIN') => {
 		setNewRole(role);
-
-		// Если меняем роль на/с ADМИНА - показываем дополнительное подтверждение
-		if (selectedUser && (selectedUser.role === 'ADMIN' || role === 'ADMIN')) {
-			setShowConfirmModal(true);
-		}
-		// Для USER и AGENT ничего не делаем - ждем нажатия "Подтвердить"
 	};
 
 	// Обработчик подтверждения в первом модальном окне
 	const handleFirstModalConfirm = () => {
 		if (!selectedUser) return;
 
-		// Если меняем роль на/с ADМИНА - показываем дополнительное подтверждение
+		// Если меняем роль на/с АДМИНА - показываем дополнительное подтверждение
 		if (selectedUser.role === 'ADMIN' || newRole === 'ADMIN') {
 			setShowConfirmModal(true);
+		}
+		// Если меняем роль с АГЕНТА на что-то другое - показываем предупреждение
+		else if (selectedUser.role === 'AGENT' && newRole !== 'AGENT') {
+			setShowAgentWarningModal(true);
 		} else {
 			// Для USER/AGENT сразу подтверждаем изменение
 			confirmRoleChange();
@@ -92,8 +95,10 @@ function AdminPanel() {
 
 		const success = await changeRole(selectedUser.id, newRole);
 		if (success) {
+			// Закрываем все модальные окна
 			setShowRoleModal(false);
 			setShowConfirmModal(false);
+			setShowAgentWarningModal(false);
 			setSelectedUser(null);
 		}
 	};
@@ -107,6 +112,12 @@ function AdminPanel() {
 	// Отмена во ВТОРОМ модальном окне (подтверждение для админов)
 	const cancelSecondModal = () => {
 		setShowConfirmModal(false);
+		// Первый модал остается открытым
+	};
+
+	// Отмена в модальном окне предупреждения для агентов
+	const cancelAgentWarningModal = () => {
+		setShowAgentWarningModal(false);
 		// Первый модал остается открытым
 	};
 
@@ -264,6 +275,57 @@ function AdminPanel() {
 
 						<div className='modal-actions'>
 							<button className='btn-cancel' onClick={cancelSecondModal}>
+								Отмена
+							</button>
+							<button
+								className='btn-confirm warning'
+								onClick={confirmRoleChange}
+								disabled={loading}
+							>
+								{loading ? 'Изменение...' : 'Да, изменить роль'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Модальное окно предупреждения для агентов */}
+			{showAgentWarningModal && selectedUser && (
+				<div className='modal-overlay' onClick={cancelAgentWarningModal}>
+					<div className='modal-content agent-warning-modal' onClick={(e) => e.stopPropagation()}>
+						<h2>Внимание: изменение роли агента</h2>
+
+						<div className='warning-message'>
+							<div className='warning-icon'>⚠️</div>
+							<div className='warning-text'>
+								<p>
+									<strong>Важное предупреждение:</strong> При изменении роли с <strong>Агента</strong> на другую роль,
+									все квартиры, связанные с этим агентом (<strong>{selectedUser.name}</strong>), будут удалены.
+								</p>
+								<p>
+									Это действие нельзя отменить. Вы уверены, что хотите продолжить?
+								</p>
+							</div>
+						</div>
+
+						<div className='role-change-details'>
+							<div className='role-change-from'>
+								<span className='label'>Текущая роль:</span>
+								<span className={`role-badge ${getRoleClass(selectedUser.role)}`}>
+									{ROLE_LABELS[selectedUser.role]}
+								</span>
+							</div>
+							<div className='role-change-arrow'>→</div>
+							<div className='role-change-to'>
+								<span className='label'>Новая роль:</span>
+								<span className={`role-badge ${getRoleClass(newRole)}`}>
+									{ROLE_LABELS[newRole]}
+								</span>
+							</div>
+						</div>
+
+						<div className='modal-actions'>
+							<button className='btn-cancel' onClick={cancelAgentWarningModal}>
 								Отмена
 							</button>
 							<button

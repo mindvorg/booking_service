@@ -82,7 +82,7 @@ function Auth() {
 
 	// Обработчик сохранения изменений
 	const handleSave = async () => {
-		if (!store.user?.userId) return;
+		if (!store.user?.id) return;
 
 		const updates: Record<string, any> = {};
 
@@ -140,7 +140,7 @@ function Auth() {
 
 			// Если есть изменения текстовых полей или аватара, отправляем их
 			if (Object.keys(updates).length > 0) {
-				await store.edit(updates, store.user.userId);
+				await store.edit(updates, store.user.id);
 			}
 
 			setIsEditing(false);

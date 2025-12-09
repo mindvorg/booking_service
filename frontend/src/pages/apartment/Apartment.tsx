@@ -284,12 +284,12 @@ export const Apartment = () => {
 				console.log(apartmentData.agentId);
 				if (apartmentData?.agentId) {
 					//Загружаем агента
-					const agentData = await getAgentById(9);
+					const agentData = await getAgentById(apartmentData.agentId);
 					setAgent(agentData);
 				};
 				if (apartmentData?.id) {
 					//Загружаем отзывы
-					const feedbackData = await getFeedbackApartmentById(apartmentData?.id);
+					const feedbackData = await getFeedbackApartmentById(apartmentData.id);
 					setFeedback(feedbackData);
 				}
 			} catch (error) {
