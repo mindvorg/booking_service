@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "apartment" (
     "room_number" SMALLINT NOT NULL,
     "price" INTEGER NOT NULL,
     "agent_id" INTEGER NOT NULL,
-    "photo" VARCHAR(255) NOT NULL,
+    "photo" TEXT NOT NULL,
     "description" VARCHAR(255) NOT NULL,
     "district" VARCHAR(255) NOT NULL,
     PRIMARY KEY("id")
