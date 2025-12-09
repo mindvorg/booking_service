@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router";
 import { Navigate } from 'react-router-dom';
-import { Admin, Apartment, Apartments, CreateApartment, Main } from '../../pages';
+import { Admin, Apartment, Apartments, CreateApartment, Main, Agents, Agent } from '../../pages';
 import { Auth } from '../../widget';
 import { type JSX, useContext } from 'react';
 import { Context } from '../main';
@@ -31,8 +31,8 @@ export const Navigation = () => {
 					<Route path='/apartments' element={<Apartments />} />
 					<Route path='/apartments/search' element={<Apartments />} />
 					<Route path='/apartments/:id' element={<Apartment />} />
-					<Route path='/agents' element={<Apartments />} />
-					<Route path='/agents/:id' element={<Apartment />} />
+					<Route path='/agents' element={<Agents />} />
+					<Route path='/agents/:id' element={<Agent />} />
 					<Route path='/auth' element={<Auth />} />
 					<Route path='/profile' element={
 						<Auth />

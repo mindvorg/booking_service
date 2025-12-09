@@ -462,7 +462,8 @@ function LoginForm() {
 														<img src={p.url} alt={p.name} />
 													</div>
 													<div className="avatar-meta">
-														<div className="avatar-name" title={p.name}>{p.name}</div>
+														<div className="avatar-name" title={p.name}>{p.name.substring(0, 10)}
+															{p.name.length > 10 && "..."}</div>
 														<div className="avatar-size">{p.sizeText}</div>
 													</div>
 													<button

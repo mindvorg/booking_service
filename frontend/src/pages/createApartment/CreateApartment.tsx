@@ -6,7 +6,7 @@ import type { Apartment, PhotoItem } from '../../shared/types/types';
 import { getApartmentById } from '../../shared/api';
 import { Context } from '../../app/main';
 
-const MAX_FILES = 20;
+const MAX_FILES = 10;
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -487,7 +487,7 @@ export default function CreateApartment() {
 								>
 									Перетащи фотографии сюда
 								</div>
-								<div className="photo-hint">Поддерживается несколько файлов. Максимум 20.</div>
+								<div className="photo-hint">Поддерживается несколько файлов. Максимум 10.</div>
 							</div>
 
 							<div className="photo-grid">

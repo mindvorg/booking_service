@@ -5,7 +5,8 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import './apartment.scss';
 import { Context } from '../../app/main';
 import type { IApartFeedback, IUser, Apartment as UApartment } from '../../shared/types/types';
-import { deleteApartmentById, getAgentById, getApartmentById, getFeedbackApartmentById } from '../../shared/api';
+import { createFeedbackApartment, deleteApartmentById, getAgentById, getApartmentById, getFeedbackApartmentById } from '../../shared/api';
+import { uploadPhotos } from '../createApartment/api';
 
 // Тип для фото в модальном окне
 type PhotoItem = {
@@ -43,7 +44,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 			return [];
 		}
 
-		const MAX_FILES = 20;
+		const MAX_FILES = 10;
 		if (photos.length + imageFiles.length > MAX_FILES) {
 			alert(`Можно загрузить не более ${MAX_FILES} фотографий.`);
 			return [];
@@ -153,7 +154,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 
 	return (
 		<div className="modal-overlay" onClick={handleCancel}>
-			<div className="modal-content feedback-modal" onClick={(e) => e.stopPropagation()}>
+			<div className=" feedback-modal" onClick={(e) => e.stopPropagation()}>
 				<h2>Добавить отзыв</h2>
 
 				{error && (
@@ -183,7 +184,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 					</label>
 					<div className="field-input">
 						<div className="photo-actions">
-							<label className={`btn add-photos ${loading ? 'disabled' : ''}`}>
+							<label className={`btn add-photos-modal ${loading ? 'disabled' : ''}`}>
 								Добавить фотографии
 								<input
 									type="file"
@@ -200,7 +201,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 							>
 								Перетащи фотографии сюда
 							</div>
-							<div className="photo-hint">Поддерживается несколько файлов. Максимум 20.</div>
+							<div className="photo-hint">Поддерживается несколько файлов. Максимум 10.</div>
 						</div>
 
 						<div className="photo-grid">
@@ -305,7 +306,7 @@ export const Apartment = () => {
 	}, [id]);
 
 	// Функция для разделения строки с фото
-	const parseFeedbackPhotos = (photosString?: string): string[] => {
+	const parseFeedbackPhotos = (photosString: string | null): string[] => {
 		if (!photosString) return [];
 		return photosString.split(', ').map(photo => photo.trim());
 	};
@@ -317,30 +318,23 @@ export const Apartment = () => {
 			// 1. Сначала загружаем фото, если они есть
 			let uploadedPhotoUrls: string[] = [];
 			if (feedbackData.photos && feedbackData.photos.length > 0) {
-				// TODO: Вызываем функцию загрузки фото на облачное хранилище
-				// uploadedPhotoUrls = await uploadPhotos(feedbackData.photos);
-				// Заглушка для демонстрации:
-				uploadedPhotoUrls = feedbackData.photos.map((_, index) => `photo${index + 1}.png`);
+				uploadedPhotoUrls = await uploadPhotos(feedbackData.photos);
 			}
 
-			// 2. Создаем отзыв
-			// TODO: Реальный API вызов
-			// const newFeedback = await createFeedback(apartment?.id, {
-			//   text: feedbackData.text,
-			//   photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls.join(', ') : undefined
-			// });
-
-			// Заглушка для демонстрации:
-			const newFeedback: IApartFeedback = {
-				id: Date.now(),
-				userId: store.user.id, // ID текущего пользователя
-				apartId: apartment?.id || 0,
+			const params: IApartFeedback = {
+				apartId: apartment?.id as number,
+				id: 0,
+				userId: store.user.id,
 				feedbackText: feedbackData.text,
-				feedbackPhoto: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls.join(', ') : undefined
+				feedbackPhoto: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls.join(', ') : null
 			};
 
+			// 2. Создаем отзыв
+			const newFeedback = await createFeedbackApartment(params);
+			console.log(newFeedback);
+
 			// 3. Добавляем новый отзыв в список
-			setFeedback(prev => [newFeedback, ...prev]);
+			setFeedback(prev => [...prev, newFeedback]);
 
 			return Promise.resolve();
 		} catch (error) {
@@ -581,7 +575,7 @@ export const Apartment = () => {
 														<div className="photos-label">Фотографии:</div>
 														<div className="photos-list">
 															{photoList.map((photo, index) => (
-																<img src={photo} alt={photo + index} key={index} className="photo-name" />
+																<img src={photo} alt={photo + index} key={index} className="feedback-photos-photo-name" />
 															))}
 														</div>
 													</div>

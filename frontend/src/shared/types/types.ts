@@ -34,6 +34,16 @@ export interface IUser {
 	agentId?: number;
 }
 
+export interface IAgent {
+	email: string;
+	name: string;
+	userId: number;
+	role: 'AGENT';
+	companyName: string;
+	avatar: string;
+	agentId: number;
+}
+
 export type PhotoItem = {
 	file: File | null;
 	url: string;
@@ -54,6 +64,13 @@ export type IApartFeedback = {
 	userId: number;
 	apartId: number;
 	id: number;
-	feedbackPhoto?: string;
+	feedbackPhoto: string | null;
 	feedbackText: string;
+};
+
+export type IAgentFeedback = {
+	userId: number;
+	agentId: number;
+	id: number;
+	text: string;
 };

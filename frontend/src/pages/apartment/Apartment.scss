@@ -473,7 +473,7 @@
 
 .add-feedback-btn {
 	padding: 8px 16px;
-	background-color: #007bff;
+	background-color: #20ab5f;
 	color: white;
 	border: none;
 	border-radius: 4px;
@@ -482,7 +482,7 @@
 	transition: background-color 0.3s;
 
 	&:hover:not(:disabled) {
-		background-color: #0056b3;
+		background-color: #188b4b;
 	}
 
 	&:disabled {
@@ -586,7 +586,7 @@
 	background: white;
 	border-radius: 12px;
 	padding: 30px;
-	max-width: 600px;
+	max-width: 900px;
 	width: 100%;
 	max-height: 90vh;
 	overflow-y: auto;
@@ -637,7 +637,7 @@
 
 		&:focus {
 			outline: none;
-			border-color: #007bff;
+			border-color: #20ab5f;
 		}
 
 		&:disabled {
@@ -659,14 +659,15 @@
 	cursor: pointer;
 	transition: all 0.3s;
 
-	&.add-photos {
-		background: #007bff;
+	&.add-photos-modal {
+		background: #20ab5f;
 		color: white;
 		display: inline-block;
 		margin-bottom: 10px;
 
+
 		&:hover:not(.disabled) {
-			background: #0056b3;
+			background: #188b4b;
 		}
 
 		&.disabled {
@@ -689,11 +690,11 @@
 	}
 
 	&.btn-submit {
-		background: #007bff;
+		background: #20ab5f;
 		color: white;
 
 		&:hover:not(:disabled) {
-			background: #0056b3;
+			background: #188b4b;
 		}
 
 		&:disabled {
@@ -729,7 +730,7 @@
 	transition: border-color 0.3s;
 
 	&:hover {
-		border-color: #007bff;
+		border-color: #20ab5f;
 	}
 }
 
@@ -783,6 +784,19 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.feedback-photos-photo-name {
+	width: 250px;
+	height: 250px;
+	object-fit: contain;
+	/* Вписывает полностью без обрезки */
+	background-color: #f5f5f5;
+	/* Фон для пустых областей */
+	padding: 4px;
+	/* Отступ внутри */
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .photo-size {
