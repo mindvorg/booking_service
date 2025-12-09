@@ -227,13 +227,15 @@ export const Agent = () => {
 				<div className="agent-feedback-section">
 					<div className="section-header">
 						<h2>Отзывы об агенте</h2>
-						<button
-							className="btn add-feedback-btn"
-							onClick={() => setShowAddFeedback(true)}
-							disabled={feedbackLoading}
-						>
-							+ Добавить отзыв
-						</button>
+						{
+							store.isAuth ? <button
+								className="btn add-feedback-btn"
+								onClick={() => setShowAddFeedback(true)}
+								disabled={feedbackLoading}
+							>
+								+ Добавить отзыв
+							</button> : null
+						}
 					</div>
 
 					{feedback.length === 0 ? (

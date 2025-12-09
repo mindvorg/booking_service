@@ -13,6 +13,7 @@ export const AgentsList = ({ agents, loading }: AgentsListProps) => {
 
 	return (
 		<div className="agents-list">
+			<div className='agents-list-title'>Агенты</div>
 			{loading ? (
 				// Скелетоны во время загрузки
 				Array.from({ length: 10 }).map((_, index) => (

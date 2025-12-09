@@ -547,13 +547,15 @@ export const Apartment = () => {
 						<div className="detail-section">
 							<div className="section-header">
 								<h3>Отзывы</h3>
-								<button
-									className="btn add-feedback-btn"
-									onClick={() => setShowAddFeedback(true)}
-									disabled={feedbackLoading}
-								>
-									+ Добавить отзыв
-								</button>
+								{
+									store.isAuth ? <button
+										className="btn add-feedback-btn"
+										onClick={() => setShowAddFeedback(true)}
+										disabled={feedbackLoading}
+									>
+										+ Добавить отзыв
+									</button> : null
+								}
 							</div>
 
 							{feedback.length === 0 ? (
