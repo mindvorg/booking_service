@@ -7,15 +7,17 @@ import { getApartmentById } from '../../shared/api';
 import { Context } from '../../app/main';
 
 const MAX_FILES = 10;
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 // Ограничения для полей
 const MAX_ROOMS = 99;        // Максимум двузначное число
 const MAX_SQUARE = 999;      // Максимум трехзначное число
 const MAX_FLOOR = 9999;      // Максимум четырехзначное число
-const MAX_HOUSE_DATE = 9999; // Максимум четырехзначное число
 const MIN_HOUSE_DATE = 1000; // Минимальный год постройки
+
+const MAX_PRICE = 999999999; // Максимальная цена
+const MIN_PRICE = 1;         // Минимальная цена
 
 function validatePhotos(files: File[], existingCount: number): File[] {
 	const imageFiles = files.filter(f => f.type.startsWith("image/"));
@@ -46,13 +48,16 @@ const limitValue = (value: number, max: number, min = 0): number => {
 
 // Функция проверки заполненности всех обязательных полей
 const isFormValid = (formData: Apartment): boolean => {
+	const currentYear = new Date().getFullYear();
+
 	return (
 		formData.roomNumber > 0 &&
 		formData.square > 0 &&
 		formData.floor > 0 &&
-		formData.price > 0 &&
+		formData.price >= MIN_PRICE &&
+		formData.price <= MAX_PRICE &&
 		formData.houseDate >= MIN_HOUSE_DATE &&
-		formData.houseDate <= new Date().getFullYear() &&
+		formData.houseDate <= currentYear &&
 		formData.district.trim() !== "" &&
 		formData.address.trim() !== "" &&
 		formData.description.trim() !== ""
@@ -81,6 +86,9 @@ export default function CreateApartment() {
 		district: "",
 	});
 
+	// Получаем текущий год
+	const currentYear = new Date().getFullYear();
+
 	// Проверяем валидность формы
 	const isFormComplete = isFormValid(formData);
 
@@ -92,30 +100,70 @@ export default function CreateApartment() {
 
 	// --- Обработчики полей с ограничениями ---
 	const handleRoomNumberChange = (value: number) => {
-		const limitedValue = limitValue(value, MAX_ROOMS);
+		const limitedValue = limitValue(value, MAX_ROOMS, 0);
 		setFormData({ ...formData, roomNumber: limitedValue });
 	};
 
 	const handleSquareChange = (value: number) => {
-		const limitedValue = limitValue(value, MAX_SQUARE);
+		const limitedValue = limitValue(value, MAX_SQUARE, 0);
 		setFormData({ ...formData, square: limitedValue });
 	};
 
 	const handleFloorChange = (value: number) => {
-		const limitedValue = limitValue(value, MAX_FLOOR);
+		const limitedValue = limitValue(value, MAX_FLOOR, 0);
 		setFormData({ ...formData, floor: limitedValue });
 	};
 
 	const handleHouseDateChange = (value: number) => {
-		// Проверяем, что год постройки не больше текущего года
-		const currentYear = new Date().getFullYear();
-		const maxYear = Math.min(MAX_HOUSE_DATE, currentYear);
-		const limitedValue = limitValue(value, maxYear, MIN_HOUSE_DATE);
-		setFormData({ ...formData, houseDate: limitedValue });
+		// Если значение пустое или не число, устанавливаем 0
+		if (isNaN(value) || value === undefined) {
+			setFormData({ ...formData, houseDate: 0 });
+			return;
+		}
+
+		// Если значение меньше минимального года (например, пользователь ввел 2 цифры 19)
+		// Не ограничиваем его сразу, пусть пользователь допечатает год
+		if (value < MIN_HOUSE_DATE) {
+			// Разрешаем ввод частичного значения, но только если оно состоит из 3-4 цифр
+			// И не начинается с 0 (чтобы избежать ввода 0999)
+			if (value >= 100 && value <= 999) {
+				// Пользователь ввел 3 цифры (например, 202)
+				setFormData({ ...formData, houseDate: value });
+				return;
+			}
+
+			if (value >= 10 && value <= 99) {
+				// Пользователь ввел 2 цифры (например, 20)
+				setFormData({ ...formData, houseDate: value });
+				return;
+			}
+
+			if (value >= 1 && value <= 9) {
+				// Пользователь ввел 1 цифру
+				setFormData({ ...formData, houseDate: value });
+				return;
+			}
+
+			// Если значение слишком маленькое, устанавливаем минимальное
+			setFormData({ ...formData, houseDate: MIN_HOUSE_DATE });
+			return;
+		}
+
+		// Если значение больше максимального года
+		if (value > currentYear) {
+			// Устанавливаем текущий год как максимальный
+			setFormData({ ...formData, houseDate: currentYear });
+			return;
+		}
+
+		// Нормальное значение в пределах диапазона
+		setFormData({ ...formData, houseDate: value });
 	};
 
 	const handlePriceChange = (value: number) => {
-		setFormData({ ...formData, price: value > 0 ? value : 0 });
+		// Ограничиваем значение между MIN_PRICE и MAX_PRICE
+		const limitedValue = limitValue(value, MAX_PRICE, 0);
+		setFormData({ ...formData, price: limitedValue });
 	};
 
 	const handleDistrictChange = (value: string) => {
@@ -141,10 +189,11 @@ export default function CreateApartment() {
 				const limitedData = {
 					...data,
 					photo: data.photo || '',
-					roomNumber: limitValue(data.roomNumber, MAX_ROOMS),
-					square: limitValue(data.square, MAX_SQUARE),
-					floor: limitValue(data.floor, MAX_FLOOR),
-					houseDate: limitValue(data.houseDate, Math.min(MAX_HOUSE_DATE, new Date().getFullYear()), MIN_HOUSE_DATE)
+					roomNumber: limitValue(data.roomNumber, MAX_ROOMS, 0),
+					square: limitValue(data.square, MAX_SQUARE, 0),
+					floor: limitValue(data.floor, MAX_FLOOR, 0),
+					houseDate: limitValue(data.houseDate, currentYear, MIN_HOUSE_DATE),
+					price: limitValue(data.price, MAX_PRICE, 0)
 				};
 
 				setFormData(limitedData);
@@ -235,6 +284,12 @@ export default function CreateApartment() {
 			return;
 		}
 
+		// Проверяем год постройки на финальном этапе
+		if (formData.houseDate < MIN_HOUSE_DATE || formData.houseDate > currentYear) {
+			alert(`Год постройки должен быть в диапазоне от ${MIN_HOUSE_DATE} до ${currentYear}`);
+			return;
+		}
+
 		try {
 			// --- 1. Удаляем фото с сервера (только для редактирования) ---
 			if (isEdit && deletedPhotos.length > 0) {
@@ -300,6 +355,64 @@ export default function CreateApartment() {
 			alert("Ошибка при сохранении объявления");
 		}
 	}
+
+	// Валидация года при потере фокуса
+	const handleHouseDateBlur = () => {
+		if (formData.houseDate === 0) {
+			// Если поле пустое, устанавливаем текущий год
+			setFormData({ ...formData, houseDate: currentYear });
+			return;
+		}
+
+		if (formData.houseDate < MIN_HOUSE_DATE) {
+			// Если значение слишком маленькое, устанавливаем минимальное
+			setFormData({ ...formData, houseDate: MIN_HOUSE_DATE });
+			return;
+		}
+
+		if (formData.houseDate > currentYear) {
+			// Если значение больше текущего года, устанавливаем текущий год
+			setFormData({ ...formData, houseDate: currentYear });
+			return;
+		}
+
+		// Если год состоит из 1-3 цифр, дополняем его до 4 цифр на основе логики
+		if (formData.houseDate >= 1 && formData.houseDate <= 999) {
+			let finalYear = formData.houseDate;
+
+			// Логика дополнения года:
+			// 1-99: считаем, что это 19xx или 20xx
+			if (finalYear >= 1 && finalYear <= 99) {
+				// Если число <= 30, считаем что это 2000-2030
+				if (finalYear <= 30) {
+					finalYear = 2000 + finalYear;
+				}
+				// Если число > 30, считаем что это 19xx
+				else {
+					finalYear = 1900 + finalYear;
+				}
+			}
+			// 100-999: добавляем 1000 или 2000 в зависимости от значения
+			else if (finalYear >= 100 && finalYear <= 999) {
+				if (finalYear >= 200 && finalYear <= 999) {
+					finalYear = 1000 + finalYear; // например, 202 -> 1202, но это неправильно
+					// Лучше считать, что 3 цифры - это 19xx или 20xx
+					if (finalYear >= 1200 && finalYear <= 1299) {
+						finalYear = 2000 + (finalYear - 1000); // 1202 -> 2022
+					}
+				}
+			}
+
+			// Проверяем, что итоговый год в пределах допустимого диапазона
+			if (finalYear < MIN_HOUSE_DATE) {
+				finalYear = MIN_HOUSE_DATE;
+			} else if (finalYear > currentYear) {
+				finalYear = currentYear;
+			}
+
+			setFormData({ ...formData, houseDate: finalYear });
+		}
+	};
 
 	return (
 		<div className="create-apartment-page">
@@ -369,18 +482,22 @@ export default function CreateApartment() {
 					<div className="form-row three-cols">
 						<div>
 							<label className="field-label">
-								Цена (₽) <span className="required-star">*</span>
+								Цена (₽, макс. {MAX_PRICE.toLocaleString('ru-RU')}) <span className="required-star">*</span>
 							</label>
 							<div className="field-input">
 								<input
 									type="number"
 									value={formData.price || ""}
 									onChange={e => handlePriceChange(Number(e.target.value))}
-									min="1"
+									min={MIN_PRICE}
+									max={MAX_PRICE}
 									required
-									className={formData.price <= 0 ? "field-invalid" : ""}
+									className={formData.price <= 0 || formData.price > MAX_PRICE ? "field-invalid" : ""}
 								/>
 								{formData.price <= 0 && <span className="field-error">Обязательное поле</span>}
+								{formData.price > MAX_PRICE && (
+									<span className="field-error">Максимальная цена: {MAX_PRICE.toLocaleString('ru-RU')} ₽</span>
+								)}
 							</div>
 						</div>
 
@@ -401,19 +518,22 @@ export default function CreateApartment() {
 
 						<div>
 							<label className="field-label">
-								Год постройки ({MIN_HOUSE_DATE}-{new Date().getFullYear()}) <span className="required-star">*</span>
+								Год постройки ({MIN_HOUSE_DATE}-{currentYear}) <span className="required-star">*</span>
 							</label>
 							<div className="field-input">
 								<input
 									type="number"
 									value={formData.houseDate || ""}
 									onChange={e => handleHouseDateChange(Number(e.target.value))}
+									onBlur={handleHouseDateBlur}
 									min={MIN_HOUSE_DATE}
-									max={new Date().getFullYear()}
+									max={currentYear}
 									required
-									className={formData.houseDate < MIN_HOUSE_DATE ? "field-invalid" : ""}
+									className={formData.houseDate < MIN_HOUSE_DATE || formData.houseDate > currentYear ? "field-invalid" : ""}
 								/>
-								{formData.houseDate < MIN_HOUSE_DATE && <span className="field-error">Обязательное поле</span>}
+								{(formData.houseDate < MIN_HOUSE_DATE || formData.houseDate > currentYear) && (
+									<span className="field-error">Допустимый диапазон: {MIN_HOUSE_DATE}-{currentYear}</span>
+								)}
 							</div>
 						</div>
 					</div>
@@ -476,12 +596,12 @@ export default function CreateApartment() {
 						</label>
 						<div className="field-input">
 							<div className="photo-actions">
-								<label className="btn add-photos">
+								<label className="btn add-photos create-apart">
 									Добавить фотографии
 									<input type="file" multiple accept="image/*" onChange={handleAddPhotos} />
 								</label>
 								<div
-									className="drop-zone"
+									className="drop-zone create-apart"
 									onDrop={handleDrop}
 									onDragOver={handleDragOver}
 								>

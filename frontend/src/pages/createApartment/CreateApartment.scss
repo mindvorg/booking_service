@@ -103,7 +103,7 @@
 	gap: 12px;
 }
 
-.btn.add-photos {
+.btn.add-photos.create-apart {
 	position: relative;
 	overflow: hidden;
 	display: inline-block;
@@ -112,6 +112,7 @@
 	color: white;
 	padding: 8px 12px;
 	border-radius: 8px;
+	font-size: 20px;
 }
 
 .btn.add-photos input[type="file"] {
@@ -123,10 +124,11 @@
 	cursor: pointer;
 }
 
-.drop-zone {
+.drop-zone.create-apart {
 	padding: 8px 12px;
 	border: 1px dashed gray;
 	border-radius: 8px;
+	margin-bottom: 0;
 	cursor: grab;
 }
 
@@ -252,8 +254,4 @@
 .btn-disabled {
 	opacity: 0.5;
 	cursor: not-allowed !important;
-
-	&:hover {
-		background-color: #007aff !important;
-	}
 }

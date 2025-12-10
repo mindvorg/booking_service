@@ -1,6 +1,6 @@
 import { useParams, Navigate } from 'react-router-dom';
 import { useContext, useEffect, useState } from 'react';
-import './agent.scss';
+import './Agent.scss';
 import { Context } from '../../app/main';
 import type { IAgentFeedback, IAgent } from '../../shared/types/types';
 import { createFeedbackAgent, getAgentById, getFeedbackAgentById } from '../../shared/api';

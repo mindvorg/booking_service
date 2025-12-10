@@ -51,7 +51,7 @@
 .apartment-gallery {
 	width: 100%;
 	max-width: 1200px;
-	margin: 0 auto 30px;
+	margin: 0 auto;
 
 	.gallery-container {
 		position: relative;
@@ -359,8 +359,9 @@
 	flex-direction: column;
 }
 
-.agent-name {
+.agent-name-in-apart {
 	font-weight: 500;
+	font-size: 18px;
 	color: #333;
 }
 
@@ -600,6 +601,10 @@
 	}
 }
 
+.feedback-modal.apart {
+	max-width: 950px;
+}
+
 .error-message {
 	background-color: rgba(255, 68, 68, 0.1);
 	color: #ff4444;
@@ -726,12 +731,17 @@
 	text-align: center;
 	color: #666;
 	margin-bottom: 10px;
-	cursor: pointer;
+	cursor: grab;
 	transition: border-color 0.3s;
 
 	&:hover {
 		border-color: #20ab5f;
 	}
+}
+
+.drop-zone.feedback {
+	font-size: 16px;
+	padding: 10px;
 }
 
 .photo-hint {

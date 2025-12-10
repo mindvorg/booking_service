@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 type FormMode = 'LOGIN' | 'REGISTER';
 
 const MAX_FILES = 1;
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 2;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 function validatePhotos(files: File[], existingCount: number): File[] {

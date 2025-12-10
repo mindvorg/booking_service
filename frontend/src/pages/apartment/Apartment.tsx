@@ -1,8 +1,8 @@
-import { useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useParams, Navigate, useNavigate, NavLink } from 'react-router-dom';
 import { useContext, useEffect, useState, type ChangeEvent } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import './apartment.scss';
+import './Apartment.scss';
 import { Context } from '../../app/main';
 import type { IApartFeedback, IUser, Apartment as UApartment } from '../../shared/types/types';
 import { createFeedbackApartment, deleteApartmentById, getAgentById, getApartmentById, getFeedbackApartmentById } from '../../shared/api';
@@ -50,7 +50,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 			return [];
 		}
 
-		const MAX_FILE_SIZE_MB = 10;
+		const MAX_FILE_SIZE_MB = 2;
 		const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
 		const validSizeFiles = imageFiles.filter(f => f.size <= MAX_FILE_SIZE);
 		if (validSizeFiles.length !== imageFiles.length) {
@@ -154,7 +154,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 
 	return (
 		<div className="modal-overlay" onClick={handleCancel}>
-			<div className=" feedback-modal" onClick={(e) => e.stopPropagation()}>
+			<div className=" feedback-modal apart" onClick={(e) => e.stopPropagation()}>
 				<h2>Добавить отзыв</h2>
 
 				{error && (
@@ -195,7 +195,7 @@ const FeedbackModal = ({ isOpen, onClose, onSubmit }: FeedbackModalProps) => {
 								/>
 							</label>
 							<div
-								className="drop-zone"
+								className="drop-zone feedback"
 								onDrop={handleDrop}
 								onDragOver={handleDragOver}
 							>
@@ -524,9 +524,9 @@ export const Apartment = () => {
 							<div className="contact-info">
 								<div className="agent-info">
 									<img src={agent?.avatar} alt={agent?.name} className="agent-avatar" />
-									<div className="agent-details">
-										<span className="agent-name">{agent?.name}, {agent?.companyName}</span>
-									</div>
+									<NavLink to={`/agents/${agent?.agentId}`} className="agent-details">
+										<span className="agent-name-in-apart">{agent?.name}, {agent?.companyName}</span>
+									</NavLink>
 								</div>
 								{
 									store.user.agentId === agent?.agentId

@@ -87,7 +87,7 @@ function Auth() {
 		const updates: Record<string, any> = {};
 
 		// Для пользователя только имя
-		if (store.user.role === 'USER') {
+		if (store.user.role === 'USER' || store.user.role === 'ADMIN') {
 			if (formData.name !== store.user.name) {
 				updates.name = formData.name;
 			}
