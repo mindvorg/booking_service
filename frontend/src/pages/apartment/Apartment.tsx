@@ -326,7 +326,7 @@ export const Apartment = () => {
 				id: 0,
 				userId: store.user.id,
 				feedbackText: feedbackData.text,
-				feedbackPhoto: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls.join(', ') : null
+				feedbackPhoto: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls.join(', ') : ''
 			};
 
 			// 2. Создаем отзыв
