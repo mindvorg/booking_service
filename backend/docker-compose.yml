@@ -1,4 +1,4 @@
-version: '1'
+version: '3.1'
 services:
   postgres-db:
     image: postgres:latest
@@ -7,21 +7,27 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
     ports:
-      - "5432:5432"
-#    volumes:
-#      - ./postgres-data:/var/lib/postgresql/data
-#      - ./create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
-#      - ./fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
+      - '5432:5432'
+
   back:
-    image: mindvorg/back:demo
+    build: .
     ports:
-      - "8080:8080"
+      - '8081:8080' # Меняем внешний порт на 8081
     depends_on:
       - postgres-db
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/booking_database
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: admin
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - '8080:80' # Клиент обращается на localhost:8080
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - back
 
 volumes:
   postgres-data:

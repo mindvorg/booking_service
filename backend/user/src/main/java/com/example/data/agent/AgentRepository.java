@@ -8,4 +8,6 @@ public interface AgentRepository extends JpaRepository<AgentData,Long> {
     Optional<AgentData> findByUserId(Long userId);
 
     boolean existsByUserId(Long userId);
+
+    void deleteByUserId(Long id);
 }

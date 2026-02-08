@@ -1,5 +1,5 @@
 export interface Apartment {
-	id: number;
+	id?: number;
 	status: number;
 	address: string;
 	houseDate: number;
@@ -8,25 +8,40 @@ export interface Apartment {
 	roomNumber: number;
 	price: number;
 	agentId: number;
-	photos: string[];
+	photo: string;
 	description: string;
 	district: string;
-	apartType: string;
-	geotag: string;
 };
 
-export interface AuthResponse {
-	accessToken: string;
-	user: IUser;
+export interface LoginResponse {
+	token: string;
+	email: string;
+	name: string;
+	id: number;
+	role: 'USER' | 'AGENT' | 'ADMIN';
+	companyName?: string;
+	avatar?: string;
+	agentId?: number;
 }
 
 export interface IUser {
 	email: string;
 	name: string;
-	id: string;
+	id: number;
 	role: 'USER' | 'AGENT' | 'ADMIN';
 	companyName?: string;
 	avatar?: string;
+	agentId?: number;
+}
+
+export interface IAgent {
+	email: string;
+	name: string;
+	userId: number;
+	role: 'AGENT';
+	companyName: string;
+	avatar: string;
+	agentId: number;
 }
 
 export type PhotoItem = {
@@ -43,4 +58,19 @@ export type IRegistration = {
 	role: 'USER' | 'AGENT';
 	companyName?: string;
 	avatar?: string;
+};
+
+export type IApartFeedback = {
+	userId: number;
+	apartId: number;
+	id: number;
+	feedbackPhoto: string | null;
+	feedbackText: string;
+};
+
+export type IAgentFeedback = {
+	userId: number;
+	agentId: number;
+	id: number;
+	text: string;
 };

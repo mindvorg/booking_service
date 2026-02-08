@@ -1,10 +1,13 @@
 package com.example.service;
 
+import com.example.controller.UserController;
+import com.example.data.ApartmentsData;
 import com.example.data.agent.AgentData;
 import com.example.data.agent.AgentRepository;
 import com.example.data.user.UserData;
 import com.example.data.user.UserRepository;
 import com.example.data.user.UserRole;
+import com.example.exceptions.UserAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,29 +18,31 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final AgentRepository agentRepository;
+    private final ApartmentsService apartmentsService;
     private final PasswordEncoder passwordEncoder;
+    private final FeedbackService feedbackService;
+    private final PhotoService photoService;
 
     @Autowired
     public UserService(UserRepository userRepository,
-                       AgentRepository agentRepository, PasswordEncoder passwordEncoder) {
+                       AgentRepository agentRepository, ApartmentsService apartmentsService, PasswordEncoder passwordEncoder, FeedbackService feedbackService, PhotoService photoService) {
         this.userRepository = userRepository;
         this.agentRepository = agentRepository;
+        this.apartmentsService = apartmentsService;
         this.passwordEncoder = passwordEncoder;
+        this.feedbackService = feedbackService;
+        this.photoService = photoService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Ищем пользователя по email
         Optional<UserData> user = userRepository.findByEmail(username);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found with email: " + username);
@@ -65,15 +70,15 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public UserData saveUser(UserData user) {
-        // Шифруем пароль
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new UserAlreadyExistsException("User already exists");
+        }
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // Если роль не указана, устанавливаем USER по умолчанию
         if (user.getRole() == null) {
             user.setRole(UserRole.USER);
         }
-
         return userRepository.save(user);
     }
 
@@ -84,31 +89,11 @@ public class UserService implements UserDetailsService {
     @Transactional
     public AgentData saveAgent(AgentData agentDTO) {
         if (agentRepository.existsByUserId(agentDTO.getUserId())) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("User already exists");
         }
         return agentRepository.save(agentDTO);
     }
 
-    @Transactional
-    public AgentData saveAgentWithUserId(AgentData agentData) {
-        // Проверяем, существует ли пользователь
-        Optional<UserData> user = userRepository.findById(agentData.getUserId());
-        if (user.isEmpty()) {
-            throw new RuntimeException("User not found with id: " + agentData.getUserId());
-        }
-
-        // Проверяем, не является ли уже агентом
-        if (agentRepository.findByUserId(agentData.getUserId()).isPresent()) {
-            throw new RuntimeException("User is already an agent");
-        }
-
-        // Обновляем роль пользователя на AGENT
-        UserData userData = user.get();
-        userData.setRole(UserRole.AGENT);
-        userRepository.save(userData);
-
-        return agentRepository.save(agentData);
-    }
 
     public Optional<UserData> findUserById(Long id) {
         return userRepository.findById(id);
@@ -130,9 +115,9 @@ public class UserService implements UserDetailsService {
         return Optional.empty();
     }
 
-    public AgentInfoDTO getAgentInfo(Long userId) {
-        Optional<UserData> user = userRepository.findById(userId);
-        Optional<AgentData> agent = agentRepository.findByUserId(userId);
+    public AgentInfoDTO getAgentInfo(Long agentId) {
+        Optional<AgentData> agent = agentRepository.findById(agentId);
+        Optional<UserData> user = userRepository.findById(agent.get().getUserId());
 
         if (user.isEmpty() || agent.isEmpty()) {
             return null;
@@ -145,16 +130,15 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
-    public List<AgentData> findAllAgents() {
-//        List<AgentInfoDTO> agentsInfo = new ArrayList<>();
-//        List<AgentData> agents = agentRepository.findAll();
-//
-//        for (AgentData agent : agents) {
-//            Optional<UserData> user = userRepository.findById(agent.getUserId());
-//            user.ifPresent(userData -> agentsInfo.add(new AgentInfoDTO(userData, agent)));
-//        }
-
-        return agentRepository.findAll();
+    public List<AgentInfoDTO> findAllAgents() {
+        List<AgentData> agents = agentRepository.findAll();
+        List<UserData> userInfo = new ArrayList<>();
+        agents.forEach(ag -> userInfo.add(userRepository.getReferenceById(ag.getUserId())));
+        List<AgentInfoDTO> list=new ArrayList<>();
+        for (int i = 0; i < agents.size(); i++) {
+            list.add(new AgentInfoDTO(userInfo.get(i), agents.get(i)));
+        }
+        return list;
     }
 
     @Transactional
@@ -167,11 +151,68 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(id);
     }
 
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+
+    @Transactional
+    public UserData updateUser(UserData userData) {
+        UserData existUser = userRepository.findById(userData.getId()).orElseThrow(
+                () -> new UsernameNotFoundException("Пользователь с ID " + userData.getId() + " не найден")
+        );
+        if (userData.getPassword() != null) {
+            existUser.setPassword(passwordEncoder.encode(userData.getPassword()));
+        }
+        if (userData.getEmail() != null) {
+            existUser.setEmail(userData.getEmail());
+        }
+        if (userData.getName() != null) {
+            existUser.setName(userData.getName());
+        }
+        return userRepository.save(existUser);
     }
 
-    // DTO для регистрации агента
+    @Transactional
+    public void updateAgent(AgentData agentData) {
+        AgentData existAgent = agentRepository.findByUserId(agentData.getUserId()).orElseThrow(
+                () -> new UsernameNotFoundException("Agent с ID " + agentData.getUserId() + " не найден")
+        );
+        if (agentData.getAvatar() != null) {
+            existAgent.setAvatar(agentData.getAvatar());
+        }
+        if (agentData.getCompanyName() != null) {
+            existAgent.setCompanyName(agentData.getCompanyName());
+        }
+        agentRepository.save(existAgent);
+    }
+
+    public boolean isAgent(Long id) {
+        return agentRepository.existsByUserId(id);
+    }
+
+    @Transactional
+    public UserData changeRole(UserController.AdminRequestDTO adminRequestDTO) {
+        UserData existData = userRepository.findById(adminRequestDTO.getId()).orElseThrow(() ->
+                new NoSuchElementException("no such user"));
+        if (existData.getRole() == UserRole.AGENT && adminRequestDTO.getRole() == UserRole.USER) {
+            AgentData agentData = agentRepository.findByUserId(existData.getId()).get();
+            List<ApartmentsData> apartmentsDataList = apartmentsService.getByAgent(agentData.getId());
+            apartmentsDataList.forEach(apart -> {
+                feedbackService.deleteApartsFeedbackByApartId(apart.getId());
+                if (!apart.getPhoto().isEmpty()) {
+                    photoService.deletePhotosFromS3(Arrays.stream(apart.getPhoto().split(",")).toList());
+                }
+                apartmentsService.deleteApartById(apart.getId());
+            });
+            feedbackService.deleteAgentsFeedbackByAgentId(agentData.getId());
+            if (agentData.getAvatar() != null) {
+                photoService.deletePhotosFromS3(List.of(agentData.getAvatar()));
+            }
+            agentRepository.deleteByUserId(existData.getId());
+        }
+        if (existData.getRole() == UserRole.USER && adminRequestDTO.getRole() == UserRole.AGENT) {
+            agentRepository.save(AgentData.builder().userId(existData.getId()).avatar("").companyName("").build());
+        }
+        existData.setRole(adminRequestDTO.getRole());
+        return userRepository.save(existData);
+    }
 
 
     // DTO для полной информации об агенте

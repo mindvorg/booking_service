@@ -15,6 +15,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -26,27 +30,42 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Arrays.asList(
+                            "http://localhost:3000",
+                            "http://localhost:5173"
+                    ));
+                    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setExposedHeaders(Collections.singletonList("Authorization"));
+                    config.setMaxAge(3600L);
+                    return config;
+                }))
                 .authorizeHttpRequests(authz -> authz
-                                // Публичные endpoints (доступны без аутентификации)
-                                .requestMatchers("/auth/login").permitAll()
-                                .requestMatchers("/auth/login/test").permitAll()
-                                .requestMatchers("/users/registration").permitAll()
-//                                .requestMatchers("/users/agents").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()
+                        // Публичные endpoints (доступны без аутентификации)
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/users/registration").permitAll()
+                        .requestMatchers("/users/saveAgent").permitAll()
+                        .requestMatchers("/users/agents/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/users/agents/feedback/add").authenticated()
+                        .requestMatchers("/users/admin/**").authenticated()
+                        .requestMatchers("/photo/upload").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/photo/delete").authenticated()
 
-                                // Загрузка фото должна быть защищена (только для агентов)
-                                .requestMatchers(HttpMethod.POST, "/photo/**").authenticated()
+                        // Сохранение квартир - только для авторизованных
+                        .requestMatchers("/apartments/add").authenticated()
+                        .requestMatchers("/apartments/feedback/add").permitAll()
 
-                                // Удаление фото должно быть защищено
-                                .requestMatchers(HttpMethod.DELETE, "/photo/**").authenticated()
+                        // Просмотр квартир доступен всем
+                        .requestMatchers(HttpMethod.GET, "/apartments/**").permitAll()
 
-                                // Сохранение квартир - только для авторизованных
-                                .requestMatchers(HttpMethod.POST, "/apartments/saveApart").authenticated()
-
-
-                                // Все остальные запросы требуют аутентификации
-                                .anyRequest().authenticated()
+                        // Все остальные запросы требуют аутентификации
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

@@ -10,8 +10,35 @@
 .header-up-container {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	padding: 10px 0;
+	gap: 20px;
+
+	.location {
+		margin-right: auto;
+	}
+}
+
+.header-up-container-btn {
+	padding: 6px 12px;
+	border-radius: 20px;
+	color: white;
+	background-color: rgb(32, 171, 95);
+
+	&:hover {
+		background: #188b4b;
+	}
+}
+
+.header-up-container-btn-logout {
+	padding: 6px 12px;
+	border-radius: 20px;
+	color: white;
+	background-color: #ab3020;
+	margin-bottom: 3px;
+
+	&:hover {
+		background: #942a1c;
+	}
 }
 
 .location,

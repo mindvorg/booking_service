@@ -1,6 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import AuthService from '../../shared/services/AuthService';
-import type { IRegistration, IUser } from '../../shared/types/types';
+import type { IRegistration, IUser, LoginResponse } from '../../shared/types/types';
 
 
 export default class Store {
@@ -9,6 +8,7 @@ export default class Store {
 	isLoading = false;
 	constructor() {
 		makeAutoObservable(this);
+		this.loadFromStorage();
 	}
 
 	setAuth(bool: boolean) {
@@ -23,36 +23,100 @@ export default class Store {
 		this.isLoading = bool;
 	}
 
-	async login(email: string, password: string) {
-		try {
-			const response = await AuthService.login(email, password);
-			console.log(response);
-			localStorage.setItem('token', response.data.accessToken);
-			this.setAuth(true);
-			this.setUser(response.data.user);
-		} catch (e: any) {
-			console.error(e.response?.data?.message);
+	loadFromStorage() {
+		const token = localStorage.getItem('token');
+		const userStr = localStorage.getItem('user');
+
+		if (token && userStr) {
+			try {
+				this.user = JSON.parse(userStr);
+				this.isAuth = true;
+			} catch (error) {
+				console.error('Failed to parse user from storage:', error);
+				this.clearStorage();
+			}
 		}
 	}
 
-	async registration(params: IRegistration) {
+	clearStorage() {
+		localStorage.removeItem('token');
+		localStorage.removeItem('user');
+		this.user = {} as IUser;
+		this.isAuth = false;
+	}
+
+	async login(email: string, password: string) {
+		let response;
 		try {
-			const response = await AuthService.registration(params);
-			console.log(response);
-			localStorage.setItem('token', response.data.accessToken);
+			response = await fetch('http://localhost:8080/auth/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ email, password })
+			});
+			const { token, ...other } = await response.json() as LoginResponse;
+
+			localStorage.setItem('token', token);
+			localStorage.setItem('user', JSON.stringify(other));
 			this.setAuth(true);
-			this.setUser(response.data.user);
+			this.setUser(other);
 		} catch (e: any) {
 			console.error(e.response?.data?.message);
+		} finally {
+			return response?.status;
+		}
+	}
+
+	async registration(registrationData: IRegistration): Promise<number | undefined> {
+		let response;
+		try {
+			response = await fetch('http://localhost:8080/users/registration', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(registrationData)
+			});
+		} catch (e: any) {
+			console.error(e.response?.data?.message);
+		} finally {
+			return response?.status;
 		}
 	}
 
 	async logout() {
 		try {
-			await AuthService.logout();
-			localStorage.removeItem('token');
-			this.setAuth(false);
-			this.setUser({} as IUser);
+			await fetch('http://localhost:8080/auth/logout', {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${localStorage.getItem('token')}`,
+				},
+			});
+			this.clearStorage();
+		} catch (e: any) {
+			console.error(e.response?.data?.message);
+		}
+	}
+
+	async edit(updates: Record<string, any>, id: number) {
+		console.log(updates);
+		try {
+			const response = await fetch(`http://localhost:8080/users/${id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${localStorage.getItem('token')}`,
+				},
+				body: JSON.stringify(updates)
+			});
+
+			const token = await response.text();
+
+			this.user = { ...this.user, ...updates };
+			localStorage.setItem('token', token);
+			localStorage.setItem('user', JSON.stringify(this.user));
 		} catch (e: any) {
 			console.error(e.response?.data?.message);
 		}
